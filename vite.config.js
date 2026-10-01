@@ -1,0 +1,35 @@
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import { resolve } from "node:path";
+import { createPortal } from "./server/portal.js";
+
+function communityWall() {
+  const attach = (server) => {
+    const store = createPortal({
+      dataDir: resolve(process.env.LIMINAL_DATA_DIR || "data"),
+    });
+    server.middlewares.use(store.handler);
+    server.httpServer?.once("close", () => store.close());
+  };
+  return {
+    name: "liminal-community-wall",
+    configureServer: attach,
+    configurePreviewServer: attach,
+  };
+}
+export default defineConfig({
+  plugins: [react(), communityWall()],
+  server: {
+    fs: {
+      deny: [
+        ".env",
+        ".env.*",
+        "*.{crt,pem}",
+        "**/.git/**",
+        "**/data/**",
+        "**/work/**",
+        "**/server/**",
+      ],
+    },
+  },
+});
