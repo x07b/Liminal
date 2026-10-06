@@ -6,23 +6,17 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createServer } from "node:net";
 
-test("Vercel proxies API/uploads before frontend fallback and rejects invalid origins", async () => {
-  const previous = process.env.BACKEND_ORIGIN;
-  try {
-    process.env.BACKEND_ORIGIN = "https://backend.example.com";
-    const { config } = await import("../vercel.mjs?valid");
-    assert.equal(config.rewrites[0].destination, "https://backend.example.com/api/:path*");
-    assert.equal(config.rewrites[1].destination, "https://backend.example.com/uploads/:path*");
-    process.env.BACKEND_ORIGIN = "http://unsafe.example.com/path";
-    await assert.rejects(import("../vercel.mjs?invalid"), /HTTPS origin/);
-    delete process.env.BACKEND_ORIGIN;
-    await assert.rejects(import("../vercel.mjs?missing"), /Set BACKEND_ORIGIN/);
-  } finally {
-    if (previous === undefined) delete process.env.BACKEND_ORIGIN;
-    else process.env.BACKEND_ORIGIN = previous;
-  }
+test("Vercel output routes preserve API, uploads and static assets before SPA fallback", async () => {
+  const { outputConfig } = await import("../scripts/build-vercel.mjs");
+  const config = JSON.parse(JSON.stringify(outputConfig("https://backend.example.com")));
+  assert.equal(config.version, 3);
+  assert.equal(config.routes[1].dest, "https://backend.example.com/api/$1");
+  assert.equal(config.routes[2].dest, "https://backend.example.com/uploads/$1");
+  assert.equal(config.routes[3].handle, "filesystem");
+  assert.equal(config.routes[4].dest, "/index.html");
+  assert.throws(() => outputConfig("http://unsafe.example.com/path"), /HTTPS origin/);
+  assert.throws(() => outputConfig(), /Set BACKEND_ORIGIN/);
 });
-
 test("production serves deep links and protects private paths", { skip: !existsSync("dist/index.html") }, async (t) => {
   const probe = createServer();
   await new Promise(resolve => probe.listen(0, "127.0.0.1", resolve));
