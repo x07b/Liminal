@@ -10,10 +10,13 @@ test("Vercel output routes preserve API, uploads and static assets before SPA fa
   const { outputConfig } = await import("../scripts/build-vercel.mjs");
   const config = JSON.parse(JSON.stringify(outputConfig("https://backend.example.com")));
   assert.equal(config.version, 3);
+  assert.equal(config.routes[0].headers["Permissions-Policy"], "camera=(), microphone=(), geolocation=()");
   assert.equal(config.routes[1].dest, "https://backend.example.com/api/$1");
   assert.equal(config.routes[2].dest, "https://backend.example.com/uploads/$1");
   assert.equal(config.routes[3].handle, "filesystem");
   assert.equal(config.routes[4].dest, "/index.html");
+  assert.match(JSON.stringify(config.routes[1]), /api\/\$1/);
+  assert.doesNotMatch(JSON.stringify(config), /"rewrites"/);
   assert.throws(() => outputConfig("http://unsafe.example.com/path"), /HTTPS origin/);
   assert.throws(() => outputConfig(), /Set BACKEND_ORIGIN/);
 });

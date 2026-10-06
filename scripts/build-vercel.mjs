@@ -12,7 +12,17 @@ export function outputConfig(origin) {
   return {
     version: 3,
     routes: [
-      { src: "/(.*)", headers: { "X-Content-Type-Options": "nosniff", "X-Frame-Options": "DENY", "Referrer-Policy": "strict-origin-when-cross-origin" }, continue: true },
+      {
+        src: "/(.*)",
+        headers: {
+          "X-Content-Type-Options": "nosniff",
+          "X-Frame-Options": "DENY",
+          "Referrer-Policy": "strict-origin-when-cross-origin",
+          "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+        },
+        continue: true,
+      },
+      // Proxy API and uploads to the persistent backend before SPA fallback.
       { src: "/api(?:/(.*))?", dest: `${backend.origin}/api/$1`, headers: { "Cache-Control": "no-store" } },
       { src: "/uploads(?:/(.*))?", dest: `${backend.origin}/uploads/$1` },
       { handle: "filesystem" },

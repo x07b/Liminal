@@ -33,7 +33,7 @@ This preserves the current projects, admin account, audience and inquiries. Star
 
 ## 3. Vercel
 
-Import the GitHub repository, choose Node **22.x**, and set `BACKEND_ORIGIN` to the backend HTTPS origin (e.g. `https://your-api.example.com`). No path or credentials. Framework preset: Other. Build command: `npm run build:vercel`. Disable the Output Directory override. `vercel.json` selects the build; it generates `.vercel/output` using the Build Output API, with API/uploads proxies before static assets and the SPA fallback. Delete the old `vercel.mjs` from GitHub; do not leave both configuration files.
+Import the GitHub repository, choose Node **22.x**, and set `BACKEND_ORIGIN` to the backend HTTPS origin (e.g. `https://your-api.example.com`). No path or credentials. Framework preset: Other. Build command: `npm run build:vercel`. Disable the Output Directory override. `vercel.json` selects that build only (no rewrites in the JSON file). The build writes `.vercel/output` via the Build Output API, proxying `/api/*` and `/uploads/*` to `BACKEND_ORIGIN` before static assets and the SPA fallback. Do not add a root `vercel.mjs` / `vercel.ts` alongside `vercel.json`.
 
 Deploy, then set the backend SITE_ORIGIN to the exact production website origin. Use the same canonical domain for admin and forms. No Resend key belongs on Vercel. Missing BACKEND_ORIGIN fails configuration explicitly instead of publishing broken forms.
 
