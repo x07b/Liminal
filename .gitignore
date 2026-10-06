@@ -4,3 +4,17 @@ data/
 work/
 .env*
 !.env.example
+.vercel/
+coverage/
+*.log
+*.tsbuildinfo
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.code-workspace
+*.pem
+*.key
+*.sqlite*
+*.db*
+LAST_DESIGN_BACKUP/

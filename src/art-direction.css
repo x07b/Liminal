@@ -1,0 +1,81 @@
+/* Space is part of the composition: long pauses between worlds, tighter within one idea. */
+.work-runway { padding-block: clamp(90px, 11vw, 180px); }
+.work-runway h2 { max-width: 1050px; margin-block: 40px 80px; font-size: clamp(48px, 6.8vw, 100px); }
+.runway-grid { grid-template-columns: 1.15fr 1fr; gap: 100px 7%; }
+.runway-card:nth-child(even) { margin-top: 170px; }
+.runway-visual, .runway-card:nth-child(2) .runway-visual { height: auto; aspect-ratio: 16 / 10; border-radius: 0; }
+.runway-card:first-child .runway-visual { aspect-ratio: 1; }
+.runway-visual > img { object-fit: contain; background: var(--paper); }
+.runway-caption { padding-top: 25px; align-items: baseline; }
+.runway-caption h3 { font-size: clamp(25px, 2.5vw, 39px); }
+.runway-caption > span { max-width: 110px; text-align: end; line-height: 1.6; }
+.runway-number { top: 12px; left: 12px; background: #1d1e1bcc; }
+.runway-open { width: 38px; height: 38px; bottom: 12px; right: 12px; }
+.services > .section-space, .process-deck, .studio-values, .story-model { padding-block: clamp(100px, 11vw, 180px); }
+.services .section-heading { margin-bottom: 80px; }
+.studio-intro { gap: clamp(40px, 9vw, 160px); }
+.services-opening > p { max-width: 580px; margin-block: 40px; }
+.service-chapter { padding-block: clamp(50px, 6vw, 95px); }
+.archive-list { gap: clamp(110px, 14vw, 220px); }
+.archive-toolbar { margin-bottom: 85px; }
+.archive-project { gap: 7%; grid-template-columns: 1.6fr 1fr; }
+.archive-reverse { grid-template-columns: 1fr 1.6fr; }
+.archive-visual { height: auto; aspect-ratio: 16 / 10; border-radius: 0; background: var(--paper); }
+.archive-visual > img { object-fit: contain; }
+.archive-list > div:first-child .archive-visual { aspect-ratio: 1; }
+.archive-info h2 { font-size: clamp(40px, 4.5vw, 70px); overflow-wrap: anywhere; }
+.archive-info > p { max-width: 340px; }
+.archive-tags { line-height: 1.8; }
+.archive-view { bottom: 12px; right: 12px; padding: 10px 13px; font-size: 9px; }
+.project-detail-heading { margin-bottom: 80px; align-items: flex-end; }
+.project-detail-heading h1 { font-size: clamp(50px, 7vw, 108px); max-width: 1000px; }
+.project-detail-heading > p { flex-shrink: 0; }
+.detail-visual.detail-image { height: auto; max-height: none; border-radius: 0; }
+.detail-visual.detail-image > img { height: auto; max-height: 88vh; object-fit: contain; }
+.case-facts { padding-block: 45px; border-color: var(--line); }
+.project-story { padding-block: 110px 40px; gap: 12%; }
+.project-story > div > section { margin-bottom: 65px; }
+.project-story > div p { max-width: 620px; line-height: 1.85; }
+.case-gallery { margin-block: 70px 120px; gap: 60px 4%; align-items: start; }
+.case-media { margin: 0; min-width: 0; }
+.case-media.wide { margin-block: 30px; }
+.case-media img { max-height: none; background: transparent; }
+.case-image-open { width: 100%; padding: 0; display: block; position: relative; background: transparent; cursor: zoom-in; }
+.case-zoom { position: absolute; bottom: 12px; right: 12px; background: #f5f3ede8; color: #1d1e1b; width: 36px; height: 36px; display: grid; place-items: center; opacity: 0; transition: opacity .3s; }
+.case-image-open:hover .case-zoom, .case-image-open:focus-visible .case-zoom { opacity: 1; }
+.project-lightbox { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh; border: 0; padding: 70px 5vw 80px; background: #161714f5; color: #f5f3ed; }
+.project-lightbox::backdrop { background: #161714; }
+.project-lightbox > img { width: 100%; height: 100%; object-fit: contain; }
+.project-lightbox-close { position: absolute; right: 24px; top: 20px; }
+.project-lightbox button { display: grid; place-items: center; background: transparent; color: inherit; min-width: 44px; min-height: 44px; }
+.project-lightbox-controls { position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%); display: flex; gap: 28px; align-items: center; font-size: 12px; }
+@media (max-width: 760px) {
+ .work-runway h2 { margin-bottom: 45px; font-size: 48px; }
+ .runway-grid { grid-template-columns: 1fr; gap: 60px; }
+ .runway-card:nth-child(even) { margin-top: 0; }
+ .runway-visual > img { position: static; }
+ .runway-caption > span { font-size: 9px; }
+ .services .section-heading { margin-bottom: 45px; }
+ .services > .section-space, .process-deck, .studio-values, .story-model { padding-block: 85px; }
+ .archive-project, .archive-reverse { grid-template-columns: 1fr; gap: 28px; }
+ .archive-reverse .archive-visual, .archive-reverse .archive-info { order: initial; }
+ .archive-list { gap: 95px; }
+ .archive-info h2 { font-size: 46px; margin-block: 18px; }
+ .archive-info > p { max-width: 100%; }
+ .archive-tags { margin-top: 24px; }
+ .archive-toolbar { margin-bottom: 50px; }
+ .project-detail-heading { flex-direction: column; align-items: flex-start; gap: 30px; margin-bottom: 45px; }
+ .project-detail-heading > p { max-width: 100%; font-size: 16px; }
+ .project-story { grid-template-columns: 1fr; padding-top: 65px; gap: 40px; }
+ .project-story > div > section { margin-bottom: 40px; }
+ .case-gallery { grid-template-columns: 1fr; gap: 30px; margin-block: 40px 70px; }
+ .case-media.wide { margin-block: 10px; }
+ .case-zoom { opacity: 1; }
+ .project-lightbox { padding: 65px 12px 80px; }
+}
+@media (prefers-reduced-motion: reduce) {
+ .scroll-word { mask-image: none !important; }
+}
+html.lenis { scroll-behavior: auto; }
+.hero-film .project-video { width: 100%; height: 100%; }
+.hero-film .project-video video { width: 100%; height: 100%; object-fit: cover; }

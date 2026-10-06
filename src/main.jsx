@@ -1,3 +1,5 @@
+import ExistenceServices from "./ExistenceServices";
+import { ScrollCopy, ScrollAtmosphere, SmoothScroll } from "./ScrollStory";
 import React, { useEffect, useRef, useState, lazy, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import {
@@ -38,6 +40,23 @@ import { LocaleProvider, useLocale, LanguageSwitch, localize } from "./locale";
 import { ProjectsProvider, useProjects } from "./ProjectsContext";
 import { request } from "./api";
 import "./portal.css";
+import { WorkRunway, PartnersBand, ProcessDeck } from "./HomeExperience";
+import ServicesPage from "./ServicesPage";
+import BrandArchive from "./BrandArchive";
+import CaseStudy from "./CaseStudy";
+import { StoryPeople, PersonProfile } from "./People";
+import {
+  CommunityProvider,
+  SocialLinks,
+  ThemeSwitch,
+  StudioAssistant,
+  FeedbackPage,
+  Newsletter,
+} from "./Engagement";
+import "./art-direction.css";
+import EditorialHome from "./EditorialHome";
+import "./EditorialPages.css";
+import ExistenceHome, { ExistenceHeader, ExistenceFooter, WorkPage, LabPage, DropsPage, AboutPage, HowThingsEscape, FinalCall } from "./Existence";
 const Admin = lazy(() => import("./Admin"));
 
 function Mark({ className = "" }) {
@@ -96,7 +115,7 @@ function Reveal({ children, className = "", delay = 0 }) {
   return (
     <motion.div
       className={className}
-      initial={reduced ? false : { opacity: 0, y: 28, filter: "blur(8px)" }}
+      initial={reduced ? false : { opacity: 0, y: 28, filter: "blur(2px)" }}
       whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
       viewport={{ once: true, amount: 0.12, margin: "0px 0px -6%" }}
       transition={{ duration: 0.82, delay, ease: [0.22, 1, 0.36, 1] }}
@@ -165,22 +184,31 @@ function Header() {
           <NavLink to="/" end>
             {t("Home")}
           </NavLink>
-          <NavLink to="/projects">{t("Projects")}</NavLink>
+          <NavLink to="/work">{t("Projects")}</NavLink>
+          <NavLink to="/services">
+            {t("Services", "Services", "الخدمات")}
+          </NavLink>
           <NavLink to="/our-story">{t("Our Story")}</NavLink>
           <NavLink to="/join-us">{t("Join Us")}</NavLink>
+          <NavLink to="/contact">
+            {t("Contact", "Contact", "تواصل معنا")}
+          </NavLink>
         </nav>
-        <LanguageSwitch />
-        <Link to="/contact" className="nav-contact">
-          {t("Parlons de votre projet ")}
-          <ArrowUpRight size={16} />
-        </Link>
-        <button
-          className="menu-trigger"
-          onClick={() => dialog.current.showModal()}
-          aria-label={t("Ouvrir le menu")}
-        >
-          <Menu size={25} />
-        </button>
+        <div className="header-tools">
+          <ThemeSwitch />
+          <LanguageSwitch />
+          <Link to="/contact" className="nav-contact">
+            {t("Parlons-en", "Get in touch", "تواصل معنا")}
+            <ArrowUpRight size={16} />
+          </Link>
+          <button
+            className="menu-trigger"
+            onClick={() => dialog.current.showModal()}
+            aria-label={t("Ouvrir le menu")}
+          >
+            <Menu size={25} />
+          </button>
+        </div>
       </header>
       <dialog
         ref={dialog}
@@ -203,8 +231,12 @@ function Header() {
             {t("Home ")}
             <ArrowUpRight />
           </Link>
-          <Link to="/projects" onClick={close}>
+          <Link to="/work" onClick={close}>
             {t("Projects ")}
+            <ArrowUpRight />
+          </Link>
+          <Link to="/services" onClick={close}>
+            {t("Services", "Services", "الخدمات")}
             <ArrowUpRight />
           </Link>
           <Link to="/our-story" onClick={close}>
@@ -237,30 +269,37 @@ function RouteEffects() {
   const first = useRef(true);
   useEffect(() => {
     const names = {
-      "/projects": "Explorations & projets",
+      "/work": "Work",
+      "/lab": "LIMINAL Lab",
+      "/drops": "Drops",
+      "/about": "About LIMINAL",
+      "/projects": "Work",
+      "/services": "Services",
       "/our-story": "Our Story",
       "/join-us": "Join Us",
       "/contact": "Parlons de votre projet",
       "/subscription": "Restons en lien.",
+      "/feedback": "Votre regard compte.",
     };
     const project = projects.find(
-      (p) => location.pathname === `/projects/${p.slug}`,
+      (p) => location.pathname === `/work/${p.slug}`,
     );
     const pageTitle =
       location.pathname === "/"
         ? t(
-            "Des images qu’on n’oublie pas",
-            "Images worth remembering",
-            "صور لا تُنسى",
+            "On fait exister les idées",
+            "We make things exist",
+            "نمنح الأشياء وجوداً",
           )
         : t(names[location.pathname] || project?.title || "Page introuvable");
-    document.title = `${pageTitle} — LIMINAL`;
+    if (!/^\/[^/]+$/.test(location.pathname) || names[location.pathname])
+      document.title = `${pageTitle} — LIMINAL`;
     const description =
       project?.description ||
       t(
-        "LIMINAL est une maison de production créative en Tunisie. Stratégie, reels, image et IA : de l’intuition à une création qu’on n’oublie pas.",
-        "LIMINAL is a creative production house in Tunisia. Strategy, reels, image and AI: from first instinct to work worth remembering.",
-        "ليمينال دار إنتاج إبداعي في تونس. استراتيجية وريلز وصورة وذكاء اصطناعي: من الحدس الأول إلى عمل لا يُنسى.",
+        "LIMINAL, compagnie créative indépendante. Tunis / Everywhere. Des idées inachevées aux projets, produits et expériences.",
+        "LIMINAL is an independent creative company. Tunis / Everywhere. We turn unfinished ideas into work, products and experiments.",
+        "ليمينال شركة إبداعية مستقلة. من تونس إلى كل مكان. نحول الأفكار غير المكتملة إلى أعمال ومنتجات وتجارب.",
       );
     document
       .querySelector('meta[name="description"]')
@@ -309,6 +348,8 @@ function EditorialImage({ className = "", eager = false }) {
 
 function Hero() {
   const { t } = useLocale();
+  const { projects } = useProjects();
+  const heroProject = projects.find(p => p.featured) || projects[0];
 
   return (
     <section className="hero page-width">
@@ -335,11 +376,7 @@ function Hero() {
             {t("Des images", "Images", "صور")}
             <br />
             <span className="serif-word">
-              {t(
-                "qu’on n’oublie pas.",
-                "worth remembering.",
-                "لا تُنسى.",
-              )}
+              {t("qu’on n’oublie pas.", "worth remembering.", "لا تُنسى.")}
             </span>
             <span className="orange-period" aria-hidden="true">
               *
@@ -356,39 +393,41 @@ function Hero() {
           </p>
           <p>
             {t(
-              "De la première intuition au reel livré, LIMINAL pense, produit et affine chaque détail — pendant que vous gardez le cap sur votre marque.",
-              "From the first spark to the final reel, LIMINAL thinks, produces and refines every detail — while you keep your focus on the brand.",
-              "من اللمحة الأولى إلى الريل النهائي، تفكّر ليمينال وتنتج وتصقل كل تفصيل — بينما تحافظ أنت على تركيزك على علامتك.",
+              "LIMINAL transforme les idées de marque en films, motion, univers visuels et son — du concept à la livraison.",
+              "LIMINAL turns brand ideas into films, motion, visual systems and sound — from concept to final delivery.",
+              "تحوّل ليمينال أفكار العلامات إلى أفلام وحركة وأنظمة بصرية وصوت — من المفهوم إلى التسليم.",
             )}
           </p>
           <Button to="/contact">
-            {t(
-              "Mettre l’idée en mouvement",
-              "Set the idea in motion",
-              "لنحرّك الفكرة",
-            )}
+            {t("Démarrer un projet", "Start a project", "ابدأ مشروعاً")}
           </Button>
+          <Link className="text-link hero-work-link" to="/work">
+            {t("Voir les projets", "View work", "شاهد الأعمال")}
+            <ArrowUpRight size={16} />
+          </Link>
         </Reveal>
       </div>
       <Reveal className="hero-film">
         <Link
-          to="/projects"
+          to={heroProject ? `/projects/${heroProject.slug}` : "/projects"}
           className="hero-image-link"
-          aria-label={t("Découvrir Le geste, exploration visuelle")}
+          aria-label={heroProject ? heroProject.title : t("Voir les projets", "View work", "شاهد الأعمال")}
         >
-          <EditorialImage eager />
+          {heroProject && <ProjectVisual project={heroProject} eager />}
           <div className="film-overlay">
             <span className="film-caption">
               {t("L’IMAGE ATTIRE.", "THE IMAGE DRAWS YOU IN.", "الصورة تجذبك.")}
               <br />
-              <em>{t("Le geste reste.", "The gesture stays.", "والحركة تبقى.")}</em>
+              <em>
+                {t("Le geste reste.", "The gesture stays.", "والحركة تبقى.")}
+              </em>
             </span>
             <span className="round-arrow">
               <ArrowUpRight size={28} />
             </span>
           </div>
           <span className="film-meta">
-            {t("01 — LE GESTE / EXPLORATION IA")}
+            {heroProject ? `${heroProject.number} — ${heroProject.title} / ${heroProject.category}` : "LIMINAL"}
           </span>
           <span className="film-corner">{t("LIMINAL © 2026")}</span>
         </Link>
@@ -451,6 +490,7 @@ function ProjectVisual({ project, eager = false }) {
 }
 
 function ProjectCard({ project, index = 0 }) {
+  const { t } = useLocale();
   return (
     <Reveal delay={index * 0.08}>
       <Link
@@ -466,6 +506,11 @@ function ProjectCard({ project, index = 0 }) {
         <div className="project-info">
           <div>
             <h3>{project.title}</h3>
+            {project.example && (
+              <small className="work-demo">
+                {t("Étude fictive", "Demo study", "دراسة تجريبية")}
+              </small>
+            )}
             <span className="project-type">{project.type}</span>
           </div>
           <span className="project-index">/{project.number}</span>
@@ -480,7 +525,10 @@ function WorkSection() {
 
   const { projects, loading, error, refresh } = useProjects();
   return (
-    <SectionReveal id="regard" className="work-section page-width section-space">
+    <SectionReveal
+      id="regard"
+      className="work-section page-width section-space"
+    >
       <Reveal className="section-heading">
         <div>
           <Label>
@@ -491,11 +539,13 @@ function WorkSection() {
             )}
           </Label>
           <h2>
-            {t("Deux études.", "Two studies.", "دراستان.")}
-            <br />
-            <span className="serif-word">
-              {t("Un même regard.", "One point of view.", "ورؤية واحدة.")}
-            </span>
+            <ScrollCopy>
+              {t("Deux études.", "Two studies.", "دراستان.")}
+              <br />
+              <span className="serif-word">
+                {t("Un même regard.", "One point of view.", "ورؤية واحدة.")}
+              </span>
+            </ScrollCopy>
           </h2>
         </div>
         <div className="section-aside">
@@ -506,8 +556,12 @@ function WorkSection() {
               "لا وصفة مكررة. لكل مشروع توتره وإيقاعه وطريقته الخاصة في البقاء في الذاكرة.",
             )}
           </p>
-          <Link className="text-link" to="/projects">
-            {t("Explorer les projets ", "Explore the projects ", "استكشف المشاريع ")}
+          <Link className="text-link" to="/work">
+            {t(
+              "Explorer les projets ",
+              "Explore the projects ",
+              "استكشف المشاريع ",
+            )}
             <ArrowUpRight size={17} />
           </Link>
         </div>
@@ -546,7 +600,9 @@ function ProjectArchive() {
           <p>{t("Chaque création a son propre langage.")}</p>
           <p className="small muted">
             {t(
-              "Pour commencer : nos explorations de marque. Les collaborations viendront écrire la suite.",
+              "Identités, campagnes et directions créatives. Chaque projet, un monde à part.",
+              "Identities, campaigns and creative directions. Every project, a world of its own.",
+              "هويات وحملات وتوجهات إبداعية. لكل مشروع عالمه الخاص.",
             )}
           </p>
         </div>
@@ -602,10 +658,11 @@ function ProjectArchive() {
                 <span className="eyebrow">
                   /{p.number} — {p.category}
                 </span>
-                <h2>{p.title}</h2>
+                <h2>
+                  <ScrollCopy>{p.title}</ScrollCopy>
+                </h2>
                 <p>{p.description}</p>
-                <span className="archive-tags">{p.tags}</span>
-                <span className="project-type">{p.type}</span>
+                
                 <ArrowUpRight className="archive-arrow" size={36} />
               </div>
             </Link>
@@ -641,18 +698,24 @@ function Services() {
               )}
             </Label>
             <h2>
-              {t("Tout ce qu’il faut.", "Everything it needs.", "كل ما يحتاجه المشروع.")}
-              <br />
-              <span className="serif-word">
-                {t("Rien de trop.", "Nothing it doesn’t.", "دون أي زيادة.")}
-              </span>
+              <ScrollCopy>
+                {t(
+                  "Tout ce qu’il faut.",
+                  "Everything it needs.",
+                  "كل ما يحتاجه المشروع.",
+                )}
+                <br />
+                <span className="serif-word">
+                  {t("Rien de trop.", "Nothing it doesn’t.", "دون أي زيادة.")}
+                </span>
+              </ScrollCopy>
             </h2>
           </div>
           <p className="section-aside">
             {t(
-              "Stratégie, tournage, montage et IA avancent comme un seul geste. Une direction continue, sans perdre l’intention entre deux étapes.",
-              "Strategy, production, editing and AI move as one gesture. One continuous direction, with no lost intent between stages.",
-              "تتحرك الاستراتيجية والتصوير والمونتاج والذكاء الاصطناعي كحركة واحدة. اتجاه متصل يحفظ القصد في كل مرحلة.",
+              "Quatre disciplines. Une seule direction.",
+              "Four disciplines. One direction.",
+              "أربع خبرات. اتجاه واحد.",
             )}
           </p>
         </Reveal>
@@ -661,10 +724,14 @@ function Services() {
             <motion.div
               className={`service ${open === i ? "is-open" : ""}`}
               key={s.title}
-              initial={reduced ? false : { opacity: 0, x: -24 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              initial={reduced ? false : { opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.35 }}
-              transition={{ duration: 0.7, delay: i * 0.07, ease: [0.22, 1, 0.36, 1] }}
+              transition={{
+                duration: 0.7,
+                delay: i * 0.07,
+                ease: [0.22, 1, 0.36, 1],
+              }}
             >
               <h3>
                 <button
@@ -702,12 +769,22 @@ function Services() {
         <div className="service-foot">
           <Mark />
           <p>
-            {t("La technologie accélère l’exploration.", "Technology speeds up exploration.", "التقنية تسرّع الاستكشاف.")}
+            {t(
+              "La technologie accélère l’exploration.",
+              "Technology speeds up exploration.",
+              "التقنية تسرّع الاستكشاف.",
+            )}
             <br />
-            <span>{t("Le goût décide.", "Taste makes the call.", "والذوق يحسم القرار.")}</span>
+            <span>
+              {t(
+                "Le goût décide.",
+                "Taste makes the call.",
+                "والذوق يحسم القرار.",
+              )}
+            </span>
           </p>
-          <Link to="/contact" className="text-link">
-            {t("Voir ce qu’on peut construire ", "See what we can build ", "لنرَ ما يمكننا بناؤه ")}
+          <Link to="/services" className="text-link">
+            {t("Explorer les services", "Explore services", "استكشف الخدمات")}
             <ArrowUpRight size={17} />
           </Link>
         </div>
@@ -724,14 +801,20 @@ function Approach() {
       <Reveal className="section-heading">
         <div>
           <Label>
-            {t("VOTRE TEMPS RESTE À VOUS", "YOUR TIME STAYS YOURS", "وقتكم يبقى لكم")}
+            {t(
+              "VOTRE TEMPS RESTE À VOUS",
+              "YOUR TIME STAYS YOURS",
+              "وقتكم يبقى لكم",
+            )}
           </Label>
           <h2>
-            {t("Le projet avance.", "The project moves.", "المشروع يتقدم.")}
-            <br />
-            <span className="serif-word">
-              {t("Vous respirez.", "You breathe.", "وأنتم تتنفسون.")}
-            </span>
+            <ScrollCopy>
+              {t("Le projet avance.", "The project moves.", "المشروع يتقدم.")}
+              <br />
+              <span className="serif-word">
+                {t("Vous respirez.", "You breathe.", "وأنتم تتنفسون.")}
+              </span>
+            </ScrollCopy>
           </h2>
         </div>
         <div className="section-aside">
@@ -776,11 +859,21 @@ function StoryTeaser() {
         <Label>{t("POURQUOI LIMINAL", "WHY LIMINAL", "لماذا ليمينال")}</Label>
         <Link to="/our-story" className="story-teaser-link">
           <h2>
-            {t("Avant d’être une agence,", "Before it was an agency,", "قبل أن تصبح وكالة،")}
-            <br />
-            <span className="serif-word">
-              {t("c’était un regard.", "it was a way of seeing.", "كانت طريقة في الرؤية.")}
-            </span>
+            <ScrollCopy>
+              {t(
+                "Avant d’être une agence,",
+                "Before it was an agency,",
+                "قبل أن تصبح وكالة،",
+              )}
+              <br />
+              <span className="serif-word">
+                {t(
+                  "c’était un regard.",
+                  "it was a way of seeing.",
+                  "كانت طريقة في الرؤية.",
+                )}
+              </span>
+            </ScrollCopy>
           </h2>
           <div>
             <img src="/brand/pictorial.svg" alt="" aria-hidden="true" />
@@ -803,9 +896,11 @@ function FAQ() {
       <Reveal className="faq-intro">
         <Label>{t("ON EN PARLE ?")}</Label>
         <h2>
-          {t("Quelques")}
-          <br />
-          <span className="serif-word">{t("réponses.")}</span>
+          <ScrollCopy>
+            {t("Quelques")}
+            <br />
+            <span className="serif-word">{t("réponses.")}</span>
+          </ScrollCopy>
         </h2>
         <p>
           {t("Le début d’un projet,")}
@@ -835,14 +930,18 @@ function ContactBanner() {
   return (
     <SectionReveal className="contact-banner">
       <div className="page-width">
-        <Label>{t("VOTRE PROCHAIN CHAPITRE", "YOUR NEXT CHAPTER", "فصلكم القادم")}</Label>
+        <Label>
+          {t("VOTRE PROCHAIN CHAPITRE", "YOUR NEXT CHAPTER", "فصلكم القادم")}
+        </Label>
         <Link to="/contact" className="contact-banner-link">
           <h2>
-            {t("Il manque encore", "Still missing:", "ما زال ينقصنا")}
-            <br />
-            <span className="serif-word">
-              {t("votre image.", "your image.", "صورتكم.")}
-            </span>
+            <ScrollCopy>
+              {t("Il manque encore", "Still missing:", "ما زال ينقصنا")}
+              <br />
+              <span className="serif-word">
+                {t("votre image.", "your image.", "صورتكم.")}
+              </span>
+            </ScrollCopy>
           </h2>
           <span className="big-arrow">
             <ArrowUpRight />
@@ -881,7 +980,8 @@ function Footer() {
         </div>
         <nav aria-label={t("Navigation de pied de page")}>
           <Link to="/">{t("Home")}</Link>
-          <Link to="/projects">{t("Projects")}</Link>
+          <Link to="/work">{t("Projects")}</Link>
+          <Link to="/services">{t("Services", "Services", "الخدمات")}</Link>
           <Link to="/our-story">{t("Our Story")}</Link>
           <Link to="/join-us">{t("Join Us")}</Link>
           <Link to="/contact">
@@ -896,6 +996,16 @@ function Footer() {
             <ArrowUpRight size={14} />
           </a>
           <small>{t("Contact du fondateur")}</small>
+          <SocialLinks />
+          <Link className="footer-feedback" to="/feedback">
+            {t(
+              "Un regard sur le site ?",
+              "Help shape this place",
+              "رأيك في الموقع؟",
+            )}{" "}
+            <ArrowUpRight size={14} />
+          </Link>
+          <Newsletter />
         </div>
       </div>
       <div className="footer-bottom">
@@ -928,6 +1038,7 @@ function Footer() {
 }
 
 function TestimonialsSection() {
+  const { projects } = useProjects();
   const { t } = useLocale();
   const [items, setItems] = useState([]);
   useEffect(() => {
@@ -947,18 +1058,16 @@ function TestimonialsSection() {
     >
       <div className="testimonials-heading">
         <Label>
-          {t(
-            "APRÈS LA LIVRAISON",
-            "AFTER DELIVERY",
-            "بعد التسليم",
-          )}
+          {t("APRÈS LA LIVRAISON", "AFTER DELIVERY", "بعد التسليم")}
         </Label>
         <h2 id="testimonials-title">
-          {t(
-            "Leur expérience. Avec leurs mots.",
-            "Their experience. In their words.",
-            "تجربتهم. بكلماتهم.",
-          )}
+          <ScrollCopy>
+            {t(
+              "Leur expérience. Avec leurs mots.",
+              "Their experience. In their words.",
+              "تجربتهم. بكلماتهم.",
+            )}
+          </ScrollCopy>
         </h2>
       </div>
       <div className="testimonials-grid">
@@ -968,7 +1077,16 @@ function TestimonialsSection() {
               <span className="testimonial-quote" aria-hidden="true">
                 “
               </span>
-              <blockquote>{item.quote}</blockquote>
+              <blockquote>{t(item.quote)}</blockquote>
+              {item.example && (
+                <small className="example-caption">
+                  {t(
+                    "Exemple fictif · portrait généré par IA",
+                    "Fictional example · AI portrait",
+                    "مثال خيالي · صورة بالذكاء الاصطناعي",
+                  )}
+                </small>
+              )}
               <footer>
                 {item.avatar ? (
                   <img
@@ -995,6 +1113,16 @@ function TestimonialsSection() {
                   />
                 )}
               </footer>
+              {item.projectSlug &&
+                projects.some((p) => p.slug === item.projectSlug) && (
+                  <Link
+                    className="case-related text-link"
+                    to={"/projects/" + item.projectSlug}
+                  >
+                    {t("Voir le projet", "View the project", "شاهد المشروع")}
+                    <ArrowUpRight size={14} />
+                  </Link>
+                )}
               {item.signature && (
                 <div className="testimonial-signature">{item.signature}</div>
               )}
@@ -1007,17 +1135,7 @@ function TestimonialsSection() {
 }
 
 function Home() {
-  return (
-    <>
-      <Hero />
-      <WorkSection />
-      <Services />
-      <Approach />
-      <TestimonialsSection />
-      <StoryTeaser />
-      <ContactBanner />
-    </>
-  );
+  return <ExistenceHome />;
 }
 
 function OurStory() {
@@ -1095,39 +1213,38 @@ function OurStory() {
           ].map(([n, title, d]) => (
             <Reveal key={n}>
               <span className="row-number">{n}</span>
-              <h2>{t(title)}</h2>
+              <h2>
+                <ScrollCopy>{t(title)}</ScrollCopy>
+              </h2>
               <p>{t(d)}</p>
             </Reveal>
           ))}
         </div>
       </section>
-      <section className="founder page-width story-founder">
-        <div className="founder-art" aria-hidden="true">
-          <span>{t("AS.")}</span>
-          <Mark />
-          <small>{t("UNE ENVIE DE CRÉER AUTREMENT.")}</small>
-        </div>
-        <Reveal className="founder-copy">
-          <Label>{t("LE PREMIER REGARD")}</Label>
-          <h2>{t("Aziz Saidi.")}</h2>
-          <span className="founder-role">
-            {t("FONDATEUR · DESIGNER & CRÉATIF")}
-          </span>
-          <p>
+      <section className="page-width story-model">
+        <span className="eyebrow">
+          LIMINAL / {t("NOTRE MODÈLE", "OUR MODEL", "نموذجنا")}
+        </span>
+        <h2>
+          <ScrollCopy>
             {t(
-              "L’identité visuelle, le motion design et les expériences digitales ont façonné mon regard. LIMINAL est la suite de ce parcours : une maison où l’image, le son et les idées se rencontrent.",
+              "Une maison. Les bons regards.",
+              "One house. The right perspectives.",
+              "دار واحدة. الرؤى المناسبة.",
             )}
-          </p>
-          <p className="founder-quote">
-            {t("« Tout commence par l’humain. »")}
-          </p>
-          <Link className="text-link" to="/join-us">
-            {t("Apportez votre regard ")}
-            <ArrowUpRight size={17} />
-          </Link>
-        </Reveal>
+          </ScrollCopy>
+        </h2>
+        <p>
+          {t(
+            "Depuis la Tunisie, nous construisons une maison de production ouverte sur le monde. Direction créative, production, motion, post et son se rencontrent autour d’un même projet. Nous réunissons les bons collaborateurs selon son ambition : un réseau choisi, une direction commune.",
+            "From Tunisia, we are building a production house with a global outlook. Creative direction, production, motion, post and sound meet around one project. We bring in the right collaborators for its ambition: a considered network, a shared direction.",
+            "من تونس نبني دار إنتاج منفتحة على العالم. يلتقي التوجيه الإبداعي والإنتاج والحركة وما بعد الإنتاج والصوت حول مشروع واحد. نجمع المتعاونين المناسبين لطموحه: شبكة مختارة واتجاه مشترك.",
+          )}
+        </p>
       </section>
+      <StoryPeople />
       <HandprintWall />
+      <BrandArchive />
     </>
   );
 }
@@ -1152,9 +1269,9 @@ function ProjectDetail() {
   return (
     <>
       <section className="project-detail page-width section-space">
-        <Link className="back-link" to="/projects">
+        <Link className="back-link" to="/work">
           <ArrowRight size={16} />
-          {t(" Toutes les explorations")}
+          {t(" Toutes les études de cas", " All case studies", " كل دراسات المشاريع")}
         </Link>
         <div className="project-detail-heading">
           <div>
@@ -1163,43 +1280,32 @@ function ProjectDetail() {
           </div>
           <p>{p.description}</p>
         </div>
+        {p.example && (
+          <p className="case-demo">
+            {t(
+              "Étude de démonstration · marque fictive · aucun résultat client revendiqué",
+              "Demo case study · fictional brand · no client results claimed",
+              "دراسة تجريبية · علامة خيالية · لا تمثل نتائج عميل",
+            )}
+          </p>
+        )}
         <div className={`detail-visual detail-${p.visual}`}>
           <ProjectVisual project={p} eager />
         </div>
-        <div className="project-story">
-          <aside>
-            <span className="eyebrow">
-              {t("EXPLORATION / ")}
-              {p.number}
-            </span>
-            <h3>{t("Ce qui prend forme.")}</h3>
-            <ul>
-              {p.deliverables.map((d) => (
-                <li key={d}>{d}</li>
-              ))}
-            </ul>
-            <p className="small muted">{p.credit}</p>
-          </aside>
-          <div>
-            {[
-              ["Le point de départ.", p.context],
-              ["L’intention.", p.intention],
-              ["La réalisation.", p.execution],
-            ].map(([title, d]) => (
-              <Reveal key={title}>
-                <h2>{t(title)}</h2>
-                <p>{d}</p>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-        <Link className="next-project" to={`/projects/${next.slug}`}>
-          <span>
-            <span className="eyebrow">{t("EXPLORATION SUIVANTE")}</span>
-            <strong>{next.title}</strong>
-          </span>
-          <ArrowUpRight size={48} />
+        <CaseStudy project={p} />
+        <Link className="button case-start" to="/contact">
+          {t("Votre prochain projet", "Start your project", "ابدأ مشروعك")}
+          <ArrowUpRight size={18} />
         </Link>
+        {projects.length > 1 && (
+          <Link className="next-project" to={`/work/${next.slug}`}>
+            <span>
+              <span className="eyebrow">{t("ÉTUDE SUIVANTE", "NEXT CASE STUDY", "الدراسة التالية")}</span>
+              <strong>{next.title}</strong>
+            </span>
+            <ArrowUpRight size={48} />
+          </Link>
+        )}
       </section>
     </>
   );
@@ -1214,16 +1320,16 @@ function Contact() {
         <Reveal className="contact-intro">
           <Label>{t("FAISONS LE PREMIER PAS")}</Label>
           <h1>
-            {t("Une idée ?")}
+            {t("Une idée", "An unfinished", "فكرة")}
             <br />
-            <span className="serif-word">{t("Parlons-en.")}</span>
+            <span className="serif-word">{t("inachevée ?", "idea?", "غير مكتملة؟")}</span>
           </h1>
           <p>
-            {t("Une marque à faire grandir.")}
+            {t("Un croquis. Un prototype. Une intuition.", "A sketch. A prototype. A strange thought.", "رسم. نموذج أولي. فكرة غريبة.")}
             <br />
-            {t("Un contenu à imaginer.")}
+            {t("Pas besoin de tout avoir résolu.", "You don’t need to have it all figured out.", "لا تحتاج إلى حل كل شيء مسبقاً.")}
             <br />
-            {t("Ou simplement une intuition.")}
+            {t("On commence là.", "We’ll start there.", "نبدأ من هنا.")}
           </p>
           <a className="contact-direct" href={`mailto:${studio.email}`}>
             <Mail size={19} />
@@ -1243,7 +1349,9 @@ function Contact() {
           </div>
         </Reveal>
         <div className="contact-form-wrap">
-          <h2>{t("Racontez-nous votre projet.")}</h2>
+          <h2>
+            <ScrollCopy>{t("Racontez-nous votre projet.")}</ScrollCopy>
+          </h2>
           <p className="form-intro">
             {t("Quelques mots suffisent pour commencer.")}
           </p>
@@ -1275,7 +1383,7 @@ function NotFound() {
 
 function LegacyProject() {
   const { slug } = useParams();
-  return <Navigate to={"/projects/" + slug} replace />;
+  return <Navigate to={"/work/" + slug} replace />;
 }
 function Site() {
   const { t } = useLocale();
@@ -1301,15 +1409,24 @@ function Site() {
     <MotionConfig reducedMotion="user">
       <>
         <RouteEffects />
-        <Header />
-        <main id="main" tabIndex={-1}>
+        <SmoothScroll />
+        <ScrollAtmosphere />
+        <ExistenceHeader />
+        <main id="main" className={location.pathname === "/" ? "" : "editorial-pages"} tabIndex={-1}>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/projects" element={<ProjectArchive />} />
-            <Route path="/projects/:slug" element={<ProjectDetail />} />
-            <Route path="/our-story" element={<OurStory />} />
+            <Route path="/work" element={<WorkPage />} />
+            <Route path="/work/:slug" element={<ProjectDetail />} />
+            <Route path="/lab" element={<LabPage />} />
+            <Route path="/drops" element={<DropsPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/projects" element={<Navigate to="/work" replace />} />
+            <Route path="/projects/:slug" element={<LegacyProject />} />
+            <Route path="/services" element={<ExistenceServices />} />
+            <Route path="/our-story" element={<Navigate to="/about" replace />} />
             <Route path="/join-us" element={<JoinUs />} />
             <Route path="/subscription" element={<Subscription />} />
+            <Route path="/feedback" element={<FeedbackPage />} />
             <Route
               path="/contact"
               element={
@@ -1321,17 +1438,22 @@ function Site() {
             />
             <Route
               path="/projets"
-              element={<Navigate to="/projects" replace />}
+              element={<Navigate to="/work" replace />}
             />
             <Route path="/projets/:slug" element={<LegacyProject />} />
             <Route
               path="/studio"
               element={<Navigate to="/our-story" replace />}
             />
+            <Route
+              path="/:personSlug"
+              element={<PersonProfile fallback={<NotFound />} />}
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
-        <Footer />
+        <ExistenceFooter />
+        <StudioAssistant />
       </>
     </MotionConfig>
   );
@@ -1341,7 +1463,9 @@ function App() {
     <LocaleProvider>
       <ProjectsProvider>
         <BrowserRouter>
-          <Site />
+          <CommunityProvider>
+            <Site />
+          </CommunityProvider>
         </BrowserRouter>
       </ProjectsProvider>
     </LocaleProvider>

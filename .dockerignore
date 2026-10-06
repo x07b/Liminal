@@ -1,0 +1,11 @@
+node_modules
+dist
+data
+work
+.git
+.env
+.env.*
+.vercel
+coverage
+*.log
+LAST_DESIGN_BACKUP

@@ -1,10 +1,10 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { resolve } from "node:path";
-import { createPortal } from "./server/portal.js";
 
 function communityWall() {
-  const attach = (server) => {
+  const attach = async (server) => {
+    const { createPortal } = await import("./server/portal.js");
     const store = createPortal({
       dataDir: resolve(process.env.LIMINAL_DATA_DIR || "data"),
     });

@@ -1,0 +1,41 @@
+.scroll-copy {
+  display: block;
+}
+.scroll-word {
+  display: inline-block;
+  white-space: pre;
+}
+@media (prefers-reduced-motion: reduce) {
+  .scroll-word {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+/* The visitors' wall is a light material in both themes. */
+html .handprint-section {
+  --ink: #252721;
+  --paper: #f5f3ed;
+  --muted: #62645a;
+  --line: #bcb9ac;
+  color: #252721;
+  color-scheme: light;
+}
+html .handprint-section .eyebrow,
+html .handprint-section .wall-heading h2,
+html .handprint-section label,
+html .handprint-section legend,
+html .handprint-section .board-meta {
+  color: #252721;
+}
+html[data-theme="dark"] .handprint-section input {
+  background: #f5f3ed;
+  color: #252721;
+  border-color: #929487;
+}
+html .handprint-section input::placeholder {
+  color: #67695e;
+  opacity: 1;
+}
+html .handprint-section .wall-heading > p {
+  color: #62645a;
+}

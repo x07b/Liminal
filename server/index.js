@@ -12,6 +12,7 @@ const store = createPortal({
   dataDir: resolve(process.env.LIMINAL_DATA_DIR || resolve(root, "data")),
 });
 const api = store.handler;
+await store.ready;
 const types = {
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
@@ -19,11 +20,20 @@ const types = {
   ".svg": "image/svg+xml",
   ".webp": "image/webp",
   ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".mp4": "video/mp4",
+  ".webm": "video/webm",
+  ".pdf": "application/pdf",
   ".woff2": "font/woff2",
   ".ico": "image/x-icon",
   ".json": "application/json",
 };
 const server = createServer((req, res) => {
+  if (req.url === "/healthz" && ["GET", "HEAD"].includes(req.method)) {
+    res.writeHead(200, { "Content-Type": "application/json", "Cache-Control": "no-store" });
+    return res.end(req.method === "HEAD" ? undefined : '{"status":"ok"}');
+  }
   res.setHeader("X-Frame-Options", "DENY");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   res.setHeader(
@@ -59,7 +69,7 @@ const server = createServer((req, res) => {
       .some((part) => part.startsWith(".") && part.length > 1);
     if (
       protectedPath ||
-      ["/data", "/work", "/server"].some(
+      ["/data", "/server"].some(
         (prefix) => pathname === prefix || pathname.startsWith(prefix + "/"),
       )
     ) {

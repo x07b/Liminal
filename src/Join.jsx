@@ -4,15 +4,15 @@ import { useLocale } from "./locale";
 import InquiryForm from "./InquiryForm";
 export default function JoinUs() {
   const { t } = useLocale(),
-    [kind, setKind] = useState("career");
+    [kind, setKind] = useState("freelance");
   const choices = [
     [
       "career",
-      t("Rejoindre l’équipe", "Join the team", "انضم إلى الفريق"),
+      t("Rencontrer le collectif", "Meet the collective", "تعرّف على الفريق"),
       t(
-        "Un poste, un stage, une nouvelle étape.",
-        "A role, an internship, a new chapter.",
-        "وظيفة، تدريب، وبداية جديدة.",
+        "Présentez-nous votre regard et votre pratique.",
+        "Introduce your perspective and your practice.",
+        "عرّفنا برؤيتك وممارستك.",
       ),
     ],
     [
@@ -96,8 +96,8 @@ export default function JoinUs() {
                   "علامة، جمهور، وفكرة نطورها معاً.",
                 )
               : t(
-                  "Votre parcours, votre énergie, votre idée. On aimerait vous découvrir.",
-                  "Your journey, your energy, your idea. We’d love to meet you.",
+                  "Réalisation, image, photographie, motion, 3D, design, son, montage, écriture ou production : dites-nous où votre regard peut rencontrer le nôtre.",
+                  "Directing, cinematography, photography, motion, 3D, design, sound, editing, writing or production: tell us where your perspective meets ours.",
                   "مسارك، طاقتك، وفكرتك. نود التعرف عليك.",
                 )}
           </p>

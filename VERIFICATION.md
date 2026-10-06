@@ -68,3 +68,30 @@ Les préférences de mouvement réduit sont implémentées dans Motion et CSS. A
 - Empty Trash vérifié côté serveur et confirmation en deux étapes inspectée dans l’interface QA.
 - Messages de mode local retirés des écrans d’authentification et du dashboard.
 - Dix tests serveur réussis et build Vite de production réussi.
+
+## Showcase éditable — 2 octobre 2026
+
+- Deux témoignages fictifs illustrés et six logos originaux disponibles dans la base et dans l’administration ; exemples identifiés sur la Home.
+- Partenaires : création, modification, ordre, publication et suppression, protégés par session et CSRF.
+- Tests des brouillons/publications, validations, suppression et persistance des modifications après redémarrage réussis.
+- Home : galerie visuelle, bandeau animé avec pause, méthode interactive avec navigation clavier.
+- Vérification navigateur à 1440 px et 375 px, dont arabe RTL : images chargées, absence de débordement horizontal et d’erreurs console.
+- Build de production réussi ; 12 tests serveur réussis. API admin testée automatiquement ; aucune connexion au compte administrateur réel effectuée pendant cette vérification.
+
+## 2026-10-02 — Founders and team
+- Added persistent founder/team profiles, published/draft states and FR/EN/AR biographies.
+- Admin management supports photo upload, ordering, profile URLs, editing and deletion.
+- Verified Aziz portrait, carousel navigation to Ghassen and Mohamed profile link in browser.
+- Build successful; 13 server tests pass including people authentication, CSRF, draft visibility, validation and CRUD.
+- Ghassen uses initials pending a real portrait; Mohamed is explicitly a fictional example.
+
+
+## Business clarity — 2026-10-02
+- Production build passed. 16 tests passed: existing auth/moderation/CRUD plus case-study validation and persistence, scope/budget/notes notification, shared gallery asset retention/purge, and deleted-demo persistence across restart.
+- Browser verified desktop and 390px mobile homepage, Services, project detail, Arabic RTL and contact fields. No horizontal overflow on checked mobile Services/contact/case-study pages; case-study images loaded successfully.
+- Five-stage process End-key navigation selects Delivery; mobile tabs remain on one compact row.
+- Isolated temporary admin fixture used to edit/save the new case-study fields and verify the changed client name on its public page. No test enquiry or test edit was submitted to the owner's production data, and no live email was sent for QA.
+- Existing homepage hero, colors, fonts, image, animation patterns, original projects, founder profiles and handprint wall retained. Navigation extended with Services/Contact.
+
+2026-10-03 final continuation: completed the distinct FORMA rollout graphic, rebuilt successfully and reran all 16 passing tests. Preview restarted on port 4173. Temporary implementation scripts removed; original work utilities preserved. Restore point unchanged.
+

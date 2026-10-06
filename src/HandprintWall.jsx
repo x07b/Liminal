@@ -1,3 +1,4 @@
+import { ScrollCopy } from "./ScrollStory";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import {
@@ -21,6 +22,7 @@ const clamp = (n, low, high) => Math.min(high, Math.max(low, n));
 export default function HandprintWall() {
   const { t } = useLocale();
   const [email, setEmail] = useState("");
+  const [download, setDownload] = useState(null);
   const [subscribe, setSubscribe] = useState(false);
   const reduced = useReducedMotion();
   const [wall, setWall] = useState({ marks: [], total: 0, page: 0, pages: 1 });
@@ -172,6 +174,7 @@ export default function HandprintWall() {
           data.error || "Impossible de poser votre empreinte. Réessayez.",
         );
       setFreshId(null);
+      setDownload(data.download);
       setPhase("done");
       setMessage(
         data.subscription === "unavailable"
@@ -202,9 +205,11 @@ export default function HandprintWall() {
               {t(" L’HISTOIRE CONTINUE AVEC VOUS")}
             </div>
             <h2>
-              {t("Leave your")}
-              <br />
-              <span className="serif-word">{t("mark.")}</span>
+              <ScrollCopy>
+                {t("Leave your")}
+                <br />
+                <span className="serif-word">{t("mark.")}</span>
+              </ScrollCopy>
             </h2>
           </div>
           <p>
@@ -230,6 +235,16 @@ export default function HandprintWall() {
                     "Elle apparaîtra sur le mur après validation. Votre email reste privé.",
                   )}
                 </p>
+                {download && (
+                  <a className="receipt-download" href={download} download>
+                    {t(
+                      "Mon empreinte en PNG",
+                      "My mark as PNG",
+                      "تحميل بصمتي PNG",
+                    )}{" "}
+                    ↗
+                  </a>
+                )}
               </div>
             ) : (
               <form onSubmit={begin}>

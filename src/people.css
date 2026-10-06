@@ -1,0 +1,237 @@
+.people-founders,
+.people-team {
+  padding-block: 100px;
+  border-top: 1px solid #d9d8cd;
+}
+.people-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 30px;
+  margin-bottom: 50px;
+}
+.people-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1.7;
+}
+.people-section-head > p {
+  font-size: 14px;
+  color: #686a61;
+}
+.people-founder-slide {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(40px, 7vw, 130px);
+  align-items: center;
+}
+.person-photo {
+  position: relative;
+  aspect-ratio: 4/5;
+  overflow: hidden;
+  background: #e8e5da;
+}
+.person-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: grayscale(1);
+}
+.person-photo .people-initials {
+  height: 100%;
+  font-size: clamp(80px, 12vw, 180px);
+  font-family: Georgia, serif;
+  font-style: italic;
+  align-items: center;
+  justify-content: center;
+  background: #e7e6d9;
+}
+.people-initials:not([hidden]) {
+  display: flex;
+}
+.people-bio h2,
+.people-bio h1 {
+  font-size: clamp(42px, 5.6vw, 88px);
+  letter-spacing: -0.065em;
+  line-height: 1.04;
+  margin: 22px 0 32px;
+  font-weight: 500;
+}
+.people-bio h2 span:not(.scroll-copy):not(.scroll-word),
+.people-bio h1 span {
+  color: #d94e30;
+}
+.people-description {
+  font-size: clamp(16px, 1.4vw, 20px);
+  line-height: 1.8;
+  white-space: pre-line;
+  color: #616259;
+  max-width: 560px;
+}
+.people-bio blockquote {
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-size: clamp(24px, 2.8vw, 40px);
+  line-height: 1.25;
+  margin: 35px 0;
+}
+.people-bio .text-link {
+  margin-top: 24px;
+}
+.people-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 26px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.people-controls > div {
+  display: flex;
+  gap: 10px;
+}
+.people-controls button {
+  width: 48px;
+  height: 48px;
+  border: 1px solid #bcbeb2;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+}
+.people-controls button:hover {
+  background: #ede996;
+}
+.people-section-head h2 {
+  font-size: clamp(34px, 4.5vw, 66px);
+  font-weight: 500;
+  letter-spacing: -0.055em;
+  line-height: 1.1;
+  margin-top: 20px;
+  max-width: 650px;
+}
+.people-team-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px;
+}
+.person-card {
+  text-decoration: none;
+  color: inherit;
+}
+.person-card .person-photo img {
+  transition: transform 0.6s;
+}
+.person-card:hover .person-photo img {
+  transform: scale(1.035);
+}
+.person-card-name {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+.person-card h3 {
+  font-size: 25px;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+}
+.person-card p {
+  font-size: 13px;
+  margin-top: 8px;
+}
+.person-card small,
+.people-bio small {
+  display: block;
+  color: #77796f;
+  font-size: 11px;
+  margin-top: 10px;
+}
+.person-profile {
+  padding-block: 150px 100px;
+  min-height: 80vh;
+}
+.person-profile > .text-link {
+  margin-bottom: 50px;
+}
+.people-status {
+  padding-block: 150px;
+  min-height: 40vh;
+}
+.people-admin-photo {
+  width: 100%;
+  max-height: 340px;
+  object-fit: cover;
+  object-position: center;
+}
+.admin-partner-grid .people-admin-photo {
+  height: 220px;
+  max-height: 220px;
+  object-fit: cover;
+}
+.admin-partner-grid .people-initials {
+  height: 220px;
+  background: #e8e5da;
+  font-size: 70px;
+  align-items: center;
+  justify-content: center;
+}
+.editor-languages {
+  display: flex;
+  gap: 12px;
+  margin-block: 20px;
+}
+.editor-languages button {
+  padding: 8px 16px;
+  border: 1px solid #ccc;
+  background: transparent;
+  cursor: pointer;
+}
+.editor-languages button[aria-pressed="true"] {
+  background: #1d1e1b;
+  color: #fff;
+}
+[dir="rtl"] .people-controls svg {
+  transform: rotate(180deg);
+}
+@media (max-width: 700px) {
+  .people-founders,
+  .people-team {
+    padding-block: 60px;
+  }
+  .people-founder-slide {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  .people-section-head {
+    align-items: start;
+    flex-direction: column;
+    gap: 18px;
+    margin-bottom: 30px;
+  }
+  .person-photo {
+    max-height: 520px;
+  }
+  .people-team-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .person-card h3 {
+    font-size: 21px;
+  }
+  .person-profile {
+    padding-top: 110px;
+  }
+  .people-current {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .person-card .person-photo img {
+    transition: none;
+  }
+}

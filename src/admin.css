@@ -36,6 +36,7 @@
 .admin-shell .text-link {
   font-size: 13px;
 }
+.admin-table-wrap table{min-width:650px}
 .admin-sidebar {
   position: fixed;
   inset: 0 auto 0 0;
@@ -49,7 +50,26 @@
 }
 .admin-brand img {
   width: 154px;
-  filter: invert(1);
+  content: url("/brand/full-logo-light.svg");
+  filter: none;
+}
+@media (min-width: 761px) {
+  .admin-sidebar nav {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    align-content: start;
+    scrollbar-width: thin;
+    margin-bottom: 18px;
+  }
+  .admin-sidebar nav button {
+    padding-block: 11px;
+  }
+  .admin-sidebar-bottom,
+  .admin-brand,
+  .admin-sidebar-label {
+    flex-shrink: 0;
+  }
 }
 .admin-sidebar-label {
   font-size: 9px;

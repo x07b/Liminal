@@ -59,116 +59,6 @@ export const projects = [
   },
 ];
 
-export const services = [
-  {
-    title: copy("Clarté créative", "Creative clarity", "وضوح إبداعي"),
-    subtitle: copy(
-      "Trouver la phrase avant le cadre.",
-      "Find the sentence before the frame.",
-      "نجد العبارة قبل الكادر.",
-    ),
-    text: copy(
-      "Nous transformons l’objectif en territoire créatif : une tension juste, une voix reconnaissable et des concepts prêts à produire.",
-      "We turn the objective into creative territory: the right tension, a recognisable voice and concepts ready to produce.",
-      "نحوّل الهدف إلى مساحة إبداعية: توتر مناسب وصوت واضح ومفاهيم جاهزة للإنتاج.",
-    ),
-    tags: [
-      copy("Direction créative", "Creative direction", "توجيه إبداعي"),
-      copy("Concepts & scripts", "Concepts & scripts", "مفاهيم وسيناريوهات"),
-      copy("Ligne éditoriale", "Editorial direction", "خط تحريري"),
-    ],
-  },
-  {
-    title: copy("Reels & production", "Reels & production", "ريلز وإنتاج"),
-    subtitle: copy(
-      "Quand le plan devient présence.",
-      "When the shot becomes presence.",
-      "حين تتحول اللقطة إلى حضور.",
-    ),
-    text: copy(
-      "Casting, décor, lumière, rythme : nous préparons le tournage pour capturer juste, puis décliner sans diluer.",
-      "Casting, location, light, rhythm: we prepare the shoot to capture the right moment, then adapt it without dilution.",
-      "الكاستينغ والمكان والضوء والإيقاع: نُحكم التحضير لنلتقط اللحظة الصحيحة ثم نكيّفها دون أن تفقد معناها.",
-    ),
-    tags: [
-      copy("Préproduction", "Pre-production", "ما قبل الإنتاج"),
-      copy("Tournage", "Filming", "تصوير"),
-      copy("Formats sociaux", "Social formats", "صيغ اجتماعية"),
-    ],
-  },
-  {
-    title: copy("Montage & sensation", "Editing & feeling", "مونتاج وإحساس"),
-    subtitle: copy(
-      "Le rythme écrit ce que l’image ne dit pas.",
-      "Rhythm writes what the image cannot say.",
-      "الإيقاع يكتب ما لا تقوله الصورة.",
-    ),
-    text: copy(
-      "Au montage, les silences, la couleur, le mouvement et le son composent une sensation précise — celle que le public emporte.",
-      "In the edit, silence, colour, motion and sound shape one precise feeling — the one the audience takes away.",
-      "في المونتاج، يصنع الصمت واللون والحركة والصوت إحساساً دقيقاً يحمله الجمهور معه.",
-    ),
-    tags: [
-      copy("Postproduction", "Post-production", "ما بعد الإنتاج"),
-      copy("Motion design", "Motion design", "تصميم الحركة"),
-      copy("Sound design", "Sound design", "تصميم الصوت"),
-    ],
-  },
-  {
-    title: copy("Création & IA", "Creation & AI", "إبداع وذكاء اصطناعي"),
-    subtitle: copy(
-      "Aller plus loin, sans perdre la main.",
-      "Go further without losing the human hand.",
-      "نذهب أبعد دون أن نفقد اللمسة البشرية.",
-    ),
-    text: copy(
-      "Nous utilisons l’IA pour ouvrir des pistes, prévisualiser et gagner du temps. La sélection, le goût et la décision restent humains.",
-      "We use AI to open paths, previsualise and save time. Selection, taste and decisions remain human.",
-      "نستخدم الذكاء الاصطناعي لفتح مسارات جديدة والتصور المسبق وكسب الوقت. الاختيار والذوق والقرار تبقى بشرية.",
-    ),
-    tags: [
-      copy("Exploration visuelle", "Visual exploration", "استكشاف بصري"),
-      copy("Prévisualisation", "Previsualisation", "تصور مسبق"),
-      copy("Traitements créatifs", "Creative treatments", "معالجات إبداعية"),
-    ],
-  },
-];
-
-export const steps = [
-  [
-    copy("Trouver le nord.", "Find north.", "نحدد الاتجاه."),
-    copy(
-      "On écoute ce qui vous amène, ce qui bloque et ce qui doit changer. Le brief devient une direction que chacun peut voir.",
-      "We listen to what brings you here, what is stuck and what needs to change. The brief becomes a direction everyone can see.",
-      "نستمع لما أتى بكم وما يعرقل وما يجب أن يتغير. ويتحول الملخص إلى اتجاه يراه الجميع.",
-    ),
-  ],
-  [
-    copy("Écrire l’élan.", "Write the momentum.", "نكتب الزخم."),
-    copy(
-      "Concept, script, références et choix visuels s’alignent. Vous validez une intention concrète, pas une promesse abstraite.",
-      "Concept, script, references and visual choices align. You approve a concrete intention, not an abstract promise.",
-      "ننسّق المفهوم والسيناريو والمراجع والاختيارات البصرية. فتوافقون على نية ملموسة لا على وعد غامض.",
-    ),
-  ],
-  [
-    copy("Faire exister.", "Make it real.", "نجعله واقعاً."),
-    copy(
-      "La production se déroule avec un cap partagé. Nous gérons l’exécution et vous gardons dans la boucle aux décisions utiles.",
-      "Production moves with a shared direction. We handle execution and keep you in the loop for the decisions that matter.",
-      "يمضي الإنتاج باتجاه مشترك. نتولى التنفيذ ونبقيكم في الصورة عند القرارات المهمة.",
-    ),
-  ],
-  [
-    copy("Finir juste.", "Finish right.", "ننهي بدقة."),
-    copy(
-      "Chaque format est revu, nommé et prêt à publier. La livraison clôt le projet proprement et prépare ce qui vient après.",
-      "Every format is reviewed, named and ready to publish. Delivery closes the project cleanly and prepares what comes next.",
-      "تُراجع كل صيغة وتُسمّى وتصبح جاهزة للنشر. يغلق التسليم المشروع بوضوح ويمهّد لما بعده.",
-    ),
-  ],
-];
-
 export const faqs = [
   [
     "Je n’ai pas encore d’idée précise. On commence où ?",
@@ -191,3 +81,8 @@ export const faqs = [
     "Ils dépendent du concept, du tournage, du nombre de contenus et des traitements nécessaires. Après un premier échange, nous vous proposons un périmètre et un planning adaptés.",
   ],
 ];
+
+export {
+  servicePillars as services,
+  productionSteps as steps,
+} from "./business-content.js";

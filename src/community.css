@@ -32,7 +32,7 @@
 .story-teaser-link:hover img {
   transform: rotate(8deg);
 }
-.story-teaser-link span {
+.story-teaser-link > div > span {
   display: flex;
   align-items: center;
   gap: 23px;
@@ -666,7 +666,7 @@ button:disabled {
     width: 52px;
     height: 55px;
   }
-  .story-teaser-link span {
+  .story-teaser-link > div > span {
     font-size: 8px;
     gap: 6px;
     white-space: nowrap;

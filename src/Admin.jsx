@@ -1,3 +1,4 @@
+import ProjectExtras from "./ProjectExtras";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -22,6 +23,10 @@ import {
 } from "lucide-react";
 import { request } from "./api";
 import "./admin.css";
+import PartnersAdmin from "./PartnersAdmin";
+import PeopleAdmin from "./PeopleAdmin";
+import EngagementAdmin from "./EngagementAdmin";
+import "./engagement.css";
 
 const emptyProject = {
   slug: "",
@@ -43,6 +48,7 @@ const emptyProject = {
   translations: { en: {}, ar: {} },
 };
 const emptyTestimonial = {
+  example: false,
   quote: "",
   name: "",
   role: "",
@@ -56,10 +62,15 @@ const tabs = [
   ["overview", "Vue d’ensemble", LayoutDashboard],
   ["projects", "Projets", Images],
   ["testimonials", "Témoignages", Quote],
+  ["partners", "Partenaires", Images],
+  ["people", "Fondateurs & équipe", Users],
   ["marks", "Empreintes", Hand],
   ["inquiries", "Demandes", Inbox],
   ["audience", "Audience", Users],
   ["campaigns", "Campagnes", Send],
+  ["community", "Liens & guide", Users],
+  ["feedback", "Retours du site", Inbox],
+  ["deliveries", "Emails automatiques", Send],
   ["trash", "Corbeille", Trash2],
   ["security", "Sécurité", ShieldCheck],
 ];
@@ -549,7 +560,9 @@ function ProjectEditor({ project, csrf, onClose, onSaved }) {
                 ["description", "Description courte"],
                 ["context", "Le point de départ"],
                 ["intention", "L’intention"],
-                ["execution", "La réalisation"],
+                ["execution", "La production"],
+                ["direction", "La direction créative"],
+                ["outcome", "Le résultat"],
                 ["credit", "Crédits"],
               ].map(([key, label]) => (
                 <label key={key}>
@@ -559,6 +572,8 @@ function ProjectEditor({ project, csrf, onClose, onSaved }) {
                     "context",
                     "intention",
                     "execution",
+                    "direction",
+                    "outcome",
                   ].includes(key) ? (
                     <textarea
                       rows={key === "description" ? 3 : 4}
@@ -592,6 +607,12 @@ function ProjectEditor({ project, csrf, onClose, onSaved }) {
             </div>
           </div>
         </div>
+        <ProjectExtras
+          value={value}
+          setValue={setValue}
+          csrf={csrf}
+          onBusy={setUploading}
+        />
         {error && (
           <p role="alert" className="admin-error">
             {error}
@@ -713,6 +734,25 @@ function TestimonialEditor({ testimonial, csrf, onClose, onSaved }) {
               />
             </label>
             <label>
+              Projet associé (slug)
+              <input
+                maxLength={80}
+                value={value.projectSlug || ""}
+                onChange={(e) => field("projectSlug", e.target.value)}
+                placeholder="forma-launch-study"
+              />
+            </label>
+            <label>
+              Ordre
+              <input
+                type="number"
+                min="0"
+                max="999"
+                value={value.order ?? 0}
+                onChange={(e) => field("order", Number(e.target.value))}
+              />
+            </label>
+            <label>
               Signature digitale
               <input
                 maxLength={120}
@@ -758,6 +798,14 @@ function TestimonialEditor({ testimonial, csrf, onClose, onSaved }) {
                 onChange={(e) => field("published", e.target.checked)}
               />
               Publié sur la page d’accueil
+            </label>
+            <label className="consent-check">
+              <input
+                type="checkbox"
+                checked={value.example === true}
+                onChange={(e) => field("example", e.target.checked)}
+              />
+              Exemple fictif — à remplacer par un retour réel
             </label>
           </div>
         </div>
@@ -874,7 +922,10 @@ export default function Admin() {
     subscribers =
       data?.subscribers.filter((s) => s.status === "subscribed").length || 0,
     trashCount =
-      (data?.trash?.projects?.length || 0) + (data?.trash?.marks?.length || 0);
+      (data?.trash?.inquiries?.length || 0) +
+      (data?.trash?.projects?.length || 0) +
+      (data?.trash?.marks?.length || 0) +
+      (data?.trash?.subscribers?.length || 0);
   return (
     <div className="admin-shell" dir="ltr">
       <aside className="admin-sidebar">
@@ -1155,6 +1206,20 @@ export default function Admin() {
                   </div>
                 </>
               )}
+              {tab === "partners" && (
+                <PartnersAdmin
+                  items={data.partners || []}
+                  csrf={auth.csrf}
+                  refresh={refresh}
+                />
+              )}
+              {tab === "people" && (
+                <PeopleAdmin
+                  items={data.people || []}
+                  csrf={auth.csrf}
+                  refresh={refresh}
+                />
+              )}
               {tab === "testimonials" && (
                 <>
                   <div className="admin-section-top">
@@ -1177,6 +1242,9 @@ export default function Admin() {
                     {data.testimonials.map((item) => (
                       <article key={item.id}>
                         <Quote size={28} />
+                        {item.example && (
+                          <span className="admin-badge">Exemple fictif</span>
+                        )}
                         <blockquote>{item.quote}</blockquote>
                         <div className="testimonial-admin-person">
                           {item.avatar ? (
@@ -1431,6 +1499,50 @@ export default function Admin() {
                   </div>
                 </>
               )}
+              {tab === "trash" && (
+                <section>
+                  <div className="admin-section-top">
+                    <h2>Contacts supprimés</h2>
+                    <p>{data.trash?.subscribers?.length || 0} contact(s)</p>
+                  </div>
+                  <p className="admin-help">
+                    Restaurer conserve le statut précédent : un désabonné reste
+                    désabonné.
+                  </p>
+                  {data.trash?.subscribers?.map((s) => (
+                    <div className="contact-trash-row" key={s.email}>
+                      <div>
+                        <strong>{s.name}</strong>
+                        <p>{s.email}</p>
+                        <small>
+                          {s.status} · {date(s.deleted_at)}
+                        </small>
+                      </div>
+                      <button
+                        className="text-link"
+                        disabled={busy}
+                        onClick={() =>
+                          action("/api/admin/subscribers", "PUT", {
+                            email: s.email,
+                          })
+                        }
+                      >
+                        <RotateCcw size={16} /> Restaurer
+                      </button>
+                    </div>
+                  ))}
+                </section>
+              )}
+              {["community", "feedback", "deliveries"].includes(tab) && (
+                <EngagementAdmin
+                  key={tab}
+                  section={tab}
+                  data={data}
+                  action={action}
+                  busy={busy}
+                />
+              )}
+              {tab === "trash" && <section className="admin-inquiries"><h2>Demandes supprimées</h2>{(data.trash.inquiries || []).map(i => <div key={i.id} className="admin-row-actions"><strong>{i.name}</strong><span>{i.email} · {date(i.deleted_at)}</span><button className="button" disabled={busy} onClick={() => action("/api/admin/inquiries/" + i.id + "/restore", "PUT")}>Restaurer</button></div>)}{!data.trash.inquiries?.length && <p>Aucune demande dans la corbeille.</p>}</section>}
               {tab === "inquiries" && (
                 <div className="admin-inquiries">
                   {visible(data.inquiries).map((i) => (
@@ -1454,7 +1566,15 @@ export default function Admin() {
                         </a>
                         <p className="message-text">{i.message}</p>
                         <dl>
-                          {["brand", "type", "timing", "craft"]
+                          {[
+                            "brand",
+                            "type",
+                            "scope",
+                            "timing",
+                            "budget",
+                            "notes",
+                            "craft",
+                          ]
                             .filter((k) => i[k])
                             .map((k) => (
                               <div key={k}>
@@ -1462,6 +1582,9 @@ export default function Admin() {
                                   {
                                     {
                                       brand: "Marque",
+                                      scope: "Périmètre",
+                                      budget: "Budget",
+                                      notes: "À savoir",
                                       type: "Besoin",
                                       timing: "Calendrier",
                                       craft: "Spécialité / organisation",
@@ -1513,6 +1636,7 @@ export default function Admin() {
                             Répondre par email
                             <ArrowUpRight size={16} />
                           </a>
+                          <button className="text-link" disabled={busy} onClick={() => { if (window.confirm("Déplacer cette demande dans la corbeille ? Vous pourrez la restaurer pendant 30 jours.")) action("/api/admin/inquiries/" + i.id, "DELETE"); }}><Trash2 size={16} /> Supprimer</button>
                         </div>
                       </div>
                     </details>
@@ -1532,6 +1656,20 @@ export default function Admin() {
                     confirment leur email reçoivent vos campagnes. Approuver une
                     empreinte ne crée pas un abonnement.
                   </p>
+                  <div className="audience-actions">
+                    <a
+                      href="/api/admin/audience.csv?status=subscribed"
+                      download
+                    >
+                      Exporter les abonnés confirmés (CSV) ↗
+                    </a>
+                    <a href="/api/admin/audience.csv?status=all" download>
+                      Exporter toute l’audience (CSV) ↗
+                    </a>
+                    <small>
+                      Le statut et les dates de consentement sont inclus.
+                    </small>
+                  </div>
                   <div className="admin-table-wrap">
                     <table>
                       <thead>
@@ -1565,6 +1703,18 @@ export default function Admin() {
                               >
                                 Désabonner
                               </button>
+                              <button
+                                className="text-link"
+                                disabled={busy}
+                                onClick={() =>
+                                  action("/api/admin/subscribers", "DELETE", {
+                                    email: s.email,
+                                  })
+                                }
+                              >
+                                {" "}
+                                <Trash2 size={14} /> Supprimer
+                              </button>
                             </td>
                           </tr>
                         ))}
@@ -1582,6 +1732,13 @@ export default function Admin() {
                 <div className="campaign-layout">
                   <div>
                     <h2>Un mot de LIMINAL.</h2>
+                    <p className="admin-help">
+                      Une campagne est un email collectif : nouveau projet,
+                      nouvelles du studio ou offre. Écrivez le message,
+                      relisez-le, puis confirmez l’envoi. Seuls les abonnés
+                      ayant confirmé leur email le reçoivent. Les confirmations
+                      de formulaires sont automatiques et séparées.
+                    </p>
                     <p>
                       {subscribers} destinataire(s) confirmé(s). Un lien de
                       désabonnement est ajouté à chaque message.

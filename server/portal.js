@@ -1,3 +1,9 @@
+import {
+  caseFields,
+  projectMedia,
+  seedCaseStudies,
+  upgradeDemoArtwork,
+} from "./case-studies.js";
 import { DatabaseSync } from "node:sqlite";
 import {
   randomBytes,
@@ -20,14 +26,23 @@ import {
 import { resolve } from "node:path";
 import { projects as seeds } from "../src/content.js";
 import { validateMark } from "./marks.js";
+import { partnerExamples, testimonialExamples } from "./showcase-seeds.js";
+import { createPeople } from "./people.js";
+import { createEngagement } from "./engagement.js";
+import sharp from "sharp";
 
 const derive = promisify(scrypt);
 const hash = (value) =>
   createHash("sha256").update(String(value)).digest("hex");
 const token = () => randomBytes(32).toString("hex");
 const TRASH_TTL_MS = 30 * 24 * 60 * 60 * 1000;
-const emailLogo = readFileSync(
-  new URL("../public/brand/full-logo.svg", import.meta.url),
+const emailLogo = (
+  await sharp(
+    readFileSync(new URL("../public/brand/full-logo.svg", import.meta.url)),
+  )
+    .resize(440)
+    .png()
+    .toBuffer()
 ).toString("base64");
 const emailOf = (value) =>
   typeof value === "string" &&
@@ -206,19 +221,33 @@ function validateProject(data) {
           .map((x) => safe(x, 150))
       : [];
   }
+  Object.assign(p, caseFields(data, { safe, mediaURL, fail }));
+  for (const lang of ["en", "ar"])
+    for (const key of ["direction", "outcome"])
+      p.translations[lang][key] = safe(data.translations?.[lang]?.[key], 4000);
   return p;
 }
 function validateTestimonial(data) {
   const item = {
+    example: data.example === true,
     quote: safe(data.quote, 1200),
     name: safe(data.name, 120),
     role: safe(data.role, 140),
     company: safe(data.company, 140),
     signature: safe(data.signature, 120),
+    projectSlug: safe(data.projectSlug, 80),
+    order: Number(data.order ?? 0),
     avatar: mediaURL(data.avatar),
     logo: mediaURL(data.logo),
     published: data.published === true,
   };
+  if (
+    !Number.isInteger(item.order) ||
+    item.order < 0 ||
+    item.order > 999 ||
+    (item.projectSlug && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(item.projectSlug))
+  )
+    fail(400, "Ordre ou projet lié invalide.");
   if (item.quote.length < 10 || item.name.length < 2)
     fail(400, "Ajoutez un témoignage et un nom valides.");
   return item;
@@ -231,6 +260,7 @@ export function createPortal({
   adminNotificationEmail = process.env.ADMIN_NOTIFICATION_EMAIL || adminEmail,
   mailMode = process.env.MAIL_MODE || "local",
   sendMail: customMail,
+  seedShowcase = true,
 } = {}) {
   mkdirSync(dataDir, { recursive: true });
   mkdirSync(resolve(dataDir, "uploads"), { recursive: true });
@@ -318,6 +348,48 @@ export function createPortal({
       throw error;
     }
   }
+  db.exec(
+    "CREATE TABLE IF NOT EXISTS partners (id TEXT PRIMARY KEY,data TEXT NOT NULL,created_at TEXT NOT NULL,updated_at TEXT NOT NULL)",
+  );
+  if (
+    seedShowcase &&
+    !db
+      .prepare("SELECT 1 FROM migrations WHERE name=?")
+      .get("showcase-examples-v2")
+  ) {
+    db.exec("BEGIN");
+    try {
+      const now = new Date().toISOString();
+      for (const [table, examples] of [
+        ["partners", partnerExamples],
+        ["testimonials", testimonialExamples],
+      ]) {
+        const insert = db.prepare(
+          `INSERT INTO ${table}(id,data,created_at,updated_at) VALUES(?,?,?,?)`,
+        );
+        for (const item of examples)
+          insert.run(randomUUID(), JSON.stringify(item), now, now);
+      }
+      db.prepare("INSERT INTO migrations VALUES(?)").run(
+        "showcase-examples-v2",
+      );
+      db.exec("COMMIT");
+    } catch (error) {
+      db.exec("ROLLBACK");
+      throw error;
+    }
+  }
+  function partnerRows(all = false) {
+    return db
+      .prepare("SELECT * FROM partners ORDER BY rowid")
+      .all()
+      .map((row) => ({ ...JSON.parse(row.data), id: row.id }))
+      .filter((item) => all || item.published)
+      .sort((a, b) => a.order - b.order);
+  }
+  const people = createPeople(db, { seed: seedShowcase, mediaURL, fail });
+  seedCaseStudies(db, seedShowcase);
+  upgradeDemoArtwork(db, seedShowcase);
   const setupFile = resolve(dataDir, "ADMIN-SETUP.txt");
   if (!db.prepare("SELECT 1 FROM admins").get() && !existsSync(setupFile))
     writeFileSync(setupFile, token(), { mode: 0o600, flag: "wx" });
@@ -354,7 +426,16 @@ export function createPortal({
       fail(503, "Configurez SITE_ORIGIN avant publication.");
     return `http://${req.headers.host}`;
   }
-  async function sendMail({ to, subject, text, key, replyTo, code, cta }) {
+  async function sendMail({
+    to,
+    subject,
+    text,
+    key,
+    replyTo = "itsazizsaidi@gmail.com",
+    code,
+    cta,
+    attachments = [],
+  }) {
     const html = emailHtml({ subject, text, code, cta });
     const plainText = `${text}${code ? `\n\nCode : ${code}` : ""}${cta?.url ? `\n\n${cta.label || "Ouvrir"} : ${cta.url}` : ""}`;
     if (customMail)
@@ -367,6 +448,7 @@ export function createPortal({
         replyTo,
         code,
         cta,
+        attachments,
       });
     if (mailMode === "local") {
       const folder = resolve(dataDir, "mail-preview");
@@ -402,16 +484,43 @@ export function createPortal({
         attachments: [
           {
             content: emailLogo,
-            filename: "liminal-logo.svg",
-            content_type: "image/svg+xml",
+            filename: "liminal-logo.png",
+            content_type: "image/png",
             content_id: "liminal-logo",
           },
+          ...attachments,
         ],
       }),
+    }).catch((error) => {
+      console.error(
+        "Email transport unavailable:",
+        error.cause?.code || error.name,
+      );
+      fail(
+        503,
+        "Impossible de joindre le service email. Réessayez dans un instant.",
+      );
     });
-    if (!response.ok) fail(503, "Envoi email indisponible. Réessayez.");
+    if (!response.ok) {
+      const restricted = response.status === 403 && /@resend\.dev>?$/i.test(process.env.MAIL_FROM || "");
+      const error = new Error(restricted
+        ? "Resend bloque les destinataires externes avec son expéditeur de test. Vérifiez votre domaine et configurez MAIL_FROM, puis relancez cet envoi."
+        : "Envoi email indisponible. Réessayez.");
+      error.status = 503;
+      error.mailPermanent = restricted;
+      throw error;
+    }
   }
   async function notifyAdmin({ subject, text, key, replyTo }) {
+    if (!customMail) {
+      engagement.queue(key || randomUUID(), {
+        to: adminNotificationEmail,
+        subject,
+        text,
+        replyTo,
+      });
+      return true;
+    }
     try {
       await sendMail({
         to: adminNotificationEmail,
@@ -458,13 +567,13 @@ export function createPortal({
   }
   async function subscribe(email, name, req) {
     const existing = db
-      .prepare("SELECT status FROM subscribers WHERE email=?")
+      .prepare("SELECT status,deleted_at FROM subscribers WHERE email=?")
       .get(email);
-    if (existing?.status === "subscribed") return;
+    if (existing?.status === "subscribed" && !existing.deleted_at) return;
     limit("subscribe:" + email, 3, 3600000);
     const secret = token();
     db.prepare(
-      "INSERT INTO subscribers VALUES(?,?, 'pending',?,NULL,?,?) ON CONFLICT(email) DO UPDATE SET name=excluded.name,status='pending',consent_at=excluded.consent_at,token_hash=excluded.token_hash",
+      "INSERT INTO subscribers(email,name,status,consent_at,verified_at,token_hash,created_at) VALUES(?,?, 'pending',?,NULL,?,?) ON CONFLICT(email) DO UPDATE SET name=excluded.name,status='pending',consent_at=excluded.consent_at,token_hash=excluded.token_hash,deleted_at=NULL,verified_at=NULL",
     ).run(
       email,
       name,
@@ -523,8 +632,24 @@ export function createPortal({
         updated_at: r.updated_at,
         deleted_at: r.deleted_at,
       }))
-      .filter((p) => all || p.published);
+      .filter((p) => all || p.published)
+      .sort(
+        (a, b) =>
+          (a.order ?? (Number(a.number) || 0)) -
+          (b.order ?? (Number(b.number) || 0)),
+      );
   }
+  if (!db.prepare("PRAGMA table_info(inquiries)").all().some(c => c.name === "deleted_at")) db.exec("ALTER TABLE inquiries ADD COLUMN deleted_at TEXT");
+  const engagement = createEngagement({
+    db,
+    sendMail,
+    json,
+    body,
+    fail,
+    limit,
+    base,
+    audit,
+  });
   function deleteTrashed(cutoff = null) {
     const where = cutoff
       ? "deleted_at IS NOT NULL AND deleted_at<=?"
@@ -539,15 +664,25 @@ export function createPortal({
       .prepare(`DELETE FROM marks WHERE ${where}`)
       .run(...(cutoff ? [cutoff] : [])).changes;
     const referenced = new Set();
+    for (const person of people.rows(true))
+      if (person.photo?.startsWith("/uploads/")) referenced.add(person.photo);
+    for (const table of ["partners", "testimonials"]) {
+      for (const row of db.prepare(`SELECT data FROM ${table}`).all()) {
+        const item = JSON.parse(row.data);
+        for (const value of [item.logo, item.avatar])
+          if (typeof value === "string" && value.startsWith("/uploads/"))
+            referenced.add(value);
+      }
+    }
     for (const row of db.prepare("SELECT data FROM projects").all()) {
       const project = JSON.parse(row.data);
-      for (const value of [project.media, project.poster])
+      for (const value of projectMedia(project))
         if (typeof value === "string" && value.startsWith("/uploads/"))
           referenced.add(value);
     }
     for (const row of expiredProjects) {
       const project = JSON.parse(row.data);
-      for (const value of [project.media, project.poster]) {
+      for (const value of projectMedia(project)) {
         if (
           typeof value !== "string" ||
           referenced.has(value) ||
@@ -558,7 +693,16 @@ export function createPortal({
         if (existsSync(file)) unlinkSync(file);
       }
     }
-    return { projectsDeleted, marksDeleted };
+    const contacts = db
+      .prepare(`SELECT email FROM subscribers WHERE ${where}`)
+      .all(...(cutoff ? [cutoff] : []));
+    for (const c of contacts)
+      db.prepare("DELETE FROM subscription_tokens WHERE email=?").run(c.email);
+    const subscribersDeleted = db
+      .prepare(`DELETE FROM subscribers WHERE ${where}`)
+      .run(...(cutoff ? [cutoff] : [])).changes;
+    const inquiriesDeleted = db.prepare(`DELETE FROM inquiries WHERE ${where}`).run(...(cutoff ? [cutoff] : [])).changes;
+    return { projectsDeleted, marksDeleted, subscribersDeleted, inquiriesDeleted };
   }
   function purgeTrash() {
     return deleteTrashed(new Date(Date.now() - TRASH_TTL_MS).toISOString());
@@ -647,14 +791,29 @@ export function createPortal({
       purgeTrash();
       if (path === "/api/projects" && req.method === "GET")
         return json(res, 200, { projects: projectRows() });
+      if (path === "/api/people" && req.method === "GET")
+        return json(res, 200, { people: people.rows() });
+      if (path === "/api/partners" && req.method === "GET")
+        return json(res, 200, { partners: partnerRows() });
       if (path === "/api/testimonials" && req.method === "GET")
         return json(res, 200, {
           testimonials: db
             .prepare("SELECT * FROM testimonials ORDER BY rowid DESC")
             .all()
             .map((row) => ({ ...JSON.parse(row.data), id: row.id }))
-            .filter((item) => item.published),
+            .filter((item) => item.published)
+            .sort((a, b) => (a.order || 0) - (b.order || 0)),
         });
+      if (await engagement.publicRoute(req, res, path, url)) return;
+      if (path === "/api/subscribe" && req.method === "POST") {
+        limit("newsletter:" + ip, 5, 3600000);
+        const d = await body(req, 2048),
+          email = emailOf(d.email);
+        if (!email || d.consent !== true || d.website)
+          fail(400, "Vérifiez votre email et votre consentement.");
+        await subscribe(email, safe(d.name, 100) || "vous", req);
+        return json(res, 200, { ok: true });
+      }
       if (path === "/api/marks" && req.method === "GET") {
         const page = Number(url.searchParams.get("page") || 0);
         if (!Number.isSafeInteger(page) || page < 0)
@@ -687,7 +846,12 @@ export function createPortal({
         const prior = db
           .prepare("SELECT id FROM marks WHERE request_id=?")
           .get(mark.requestId);
-        if (prior) return json(res, 200, { id: prior.id, status: "pending" });
+        if (prior)
+          return json(res, 200, {
+            id: prior.id,
+            status: "pending",
+            download: engagement.receipt("mark", prior.id),
+          });
         limit("mark:" + ip, 5, 3600000);
         const id = randomUUID();
         db.prepare(
@@ -718,7 +882,19 @@ export function createPortal({
           key: `mark/${id}`,
           replyTo: email,
         });
-        return json(res, 201, { id, status: "pending", subscription });
+        const download = engagement.submission({
+          kind: "mark",
+          id,
+          name: mark.name,
+          email,
+          req,
+        });
+        return json(res, 201, {
+          id,
+          status: "pending",
+          subscription,
+          download,
+        });
       }
       if (path === "/api/inquiries" && req.method === "POST") {
         const data = await body(req, 12000),
@@ -739,7 +915,14 @@ export function createPortal({
         const prior = db
           .prepare("SELECT id FROM inquiries WHERE request_id=?")
           .get(data.requestId);
-        if (prior) return json(res, 200, { id: prior.id });
+        if (prior)
+          return json(res, 200, {
+            id: prior.id,
+            download:
+              data.kind === "project"
+                ? engagement.receipt("brief", prior.id)
+                : null,
+          });
         limit("inquiry:" + ip, 8, 3600000);
         const id = randomUUID();
         const clean = {
@@ -747,6 +930,9 @@ export function createPortal({
           brand: safe(data.brand),
           type: safe(data.type),
           timing: safe(data.timing),
+          scope: safe(data.scope, 1000),
+          budget: safe(data.budget, 200),
+          notes: safe(data.notes, 1000),
           craft: safe(data.craft),
           portfolio: safe(data.portfolio, 1000),
           locale: ["fr", "en", "ar"].includes(data.locale) ? data.locale : "fr",
@@ -774,6 +960,9 @@ export function createPortal({
           clean.brand && `Marque : ${clean.brand}`,
           clean.type && `Besoin : ${clean.type}`,
           clean.timing && `Calendrier : ${clean.timing}`,
+          clean.scope && `Périmètre : ${clean.scope}`,
+          clean.budget && `Budget : ${clean.budget}`,
+          clean.notes && `Informations : ${clean.notes}`,
           clean.craft && `Spécialité : ${clean.craft}`,
           clean.portfolio && `Portfolio : ${clean.portfolio}`,
         ].filter(Boolean);
@@ -783,7 +972,14 @@ export function createPortal({
           key: `inquiry/${id}`,
           replyTo: email,
         });
-        return json(res, 201, { id });
+        const download = engagement.submission({
+          kind: data.kind,
+          id,
+          name,
+          email,
+          req,
+        });
+        return json(res, 201, { id, download });
       }
       if (path === "/api/subscription" && req.method === "POST") {
         limit("subscription:" + ip, 20);
@@ -805,7 +1001,7 @@ export function createPortal({
         const entry = db
           .prepare("SELECT * FROM subscribers WHERE email=?")
           .get(link.email);
-        if (!entry) fail(400, "Lien invalide.");
+        if (!entry || entry.deleted_at) fail(400, "Lien invalide.");
         if (data.action === "confirm" && entry.status === "unsubscribed")
           fail(400, "Ce lien a été désactivé. Demandez un nouvel abonnement.");
         db.prepare(
@@ -815,6 +1011,8 @@ export function createPortal({
           data.action === "confirm" ? now : entry.verified_at,
           entry.email,
         );
+        if (data.action === "confirm" && entry.status !== "subscribed")
+          engagement.welcome(entry, req);
         return json(res, 200, {
           status: data.action === "confirm" ? "subscribed" : "unsubscribed",
         });
@@ -1009,9 +1207,13 @@ export function createPortal({
           res.setHeader("Set-Cookie", cookie("", secure, 0));
           return json(res, 200, { ok: true });
         }
+        if (await engagement.adminRoute(req, res, path, url, s)) return;
         if (path === "/api/admin/dashboard" && req.method === "GET")
           return json(res, 200, {
+            ...engagement.dashboard(),
             projects: projectRows(true),
+            people: people.rows(true),
+            partners: partnerRows(true),
             marks: db
               .prepare(
                 "SELECT * FROM marks WHERE deleted_at IS NULL ORDER BY rowid DESC",
@@ -1019,6 +1221,12 @@ export function createPortal({
               .all()
               .map(({ request_id, ...m }) => m),
             trash: {
+              inquiries: db.prepare("SELECT id,name,email,kind,status,deleted_at FROM inquiries WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC").all(),
+              subscribers: db
+                .prepare(
+                  "SELECT email,name,status,deleted_at FROM subscribers WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC",
+                )
+                .all(),
               projects: projectRows(true, true),
               marks: db
                 .prepare(
@@ -1028,7 +1236,7 @@ export function createPortal({
                 .map(({ request_id, ...m }) => m),
             },
             inquiries: db
-              .prepare("SELECT * FROM inquiries ORDER BY rowid DESC")
+              .prepare("SELECT * FROM inquiries WHERE deleted_at IS NULL ORDER BY rowid DESC")
               .all()
               .map(({ request_id, data, ...r }) => ({
                 ...r,
@@ -1036,7 +1244,7 @@ export function createPortal({
               })),
             subscribers: db
               .prepare(
-                "SELECT email,name,status,consent_at,verified_at,created_at FROM subscribers ORDER BY created_at DESC",
+                "SELECT email,name,status,consent_at,verified_at,created_at FROM subscribers WHERE deleted_at IS NULL ORDER BY created_at DESC",
               )
               .all(),
             audit: db
@@ -1057,6 +1265,7 @@ export function createPortal({
                 updated_at: row.updated_at,
               })),
             localMail: mailMode === "local",
+            senderTesting: /@resend\.dev>?$/.test(process.env.MAIL_FROM || ""),
           });
         if (path === "/api/admin/trash" && req.method === "DELETE") {
           const result = deleteTrashed();
@@ -1065,6 +1274,78 @@ export function createPortal({
             s.email,
           );
           return json(res, 200, result);
+        }
+        const personMatch = path.match(/^\/api\/admin\/people\/([a-f0-9-]+)$/);
+        if (
+          (path === "/api/admin/people" && req.method === "POST") ||
+          (personMatch && req.method === "PUT")
+        ) {
+          const person = people.save(await body(req, 24000), personMatch?.[1]);
+          audit("person.save:" + person.id, s.email);
+          return json(res, personMatch ? 200 : 201, { person });
+        }
+        if (personMatch && req.method === "DELETE") {
+          people.remove(personMatch[1]);
+          audit("person.delete:" + personMatch[1], s.email);
+          return json(res, 200, { ok: true });
+        }
+        const partnerMatch = path.match(
+          /^\/api\/admin\/partners\/([a-f0-9-]+)$/,
+        );
+        if (
+          (path === "/api/admin/partners" && req.method === "POST") ||
+          (partnerMatch && req.method === "PUT")
+        ) {
+          const data = await body(req, 6000);
+          const item = {
+            name: safe(data.name, 100),
+            logo: mediaURL(data.logo),
+            published: data.published === true,
+            example: data.example === true,
+            order: Number(data.order ?? 0),
+            featured: data.featured !== false,
+            projectSlug: safe(data.projectSlug, 80),
+            website: mediaURL(data.website),
+          };
+          if (
+            item.projectSlug &&
+            !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(item.projectSlug)
+          )
+            fail(400, "Projet lié invalide.");
+          if (
+            !item.name ||
+            !item.logo ||
+            !Number.isInteger(item.order) ||
+            item.order < 0 ||
+            item.order > 999
+          )
+            fail(400, "Nom, logo et ordre (0–999) valides requis.");
+          const id = partnerMatch ? partnerMatch[1] : randomUUID();
+          if (partnerMatch) {
+            const result = db
+              .prepare("UPDATE partners SET data=?,updated_at=? WHERE id=?")
+              .run(JSON.stringify(item), now, id);
+            if (!result.changes) fail(404, "Partenaire introuvable.");
+          } else
+            db.prepare("INSERT INTO partners VALUES(?,?,?,?)").run(
+              id,
+              JSON.stringify(item),
+              now,
+              now,
+            );
+          audit("partner.save:" + id, s.email);
+          return json(res, partnerMatch ? 200 : 201, {
+            partner: { ...item, id },
+          });
+        }
+        if (partnerMatch && req.method === "DELETE") {
+          if (
+            !db.prepare("DELETE FROM partners WHERE id=?").run(partnerMatch[1])
+              .changes
+          )
+            fail(404, "Partenaire introuvable.");
+          audit("partner.delete:" + partnerMatch[1], s.email);
+          return json(res, 200, { ok: true });
         }
         if (path === "/api/admin/testimonials" && req.method === "POST") {
           const item = validateTestimonial(await body(req, 12000)),
@@ -1096,7 +1377,7 @@ export function createPortal({
           return json(res, 200, { ok: true });
         }
         if (path === "/api/admin/projects" && req.method === "POST") {
-          const p = validateProject(await body(req));
+          const p = validateProject(await body(req, 100000));
           const id = randomUUID();
           if (db.prepare("SELECT 1 FROM projects WHERE slug=?").get(p.slug))
             fail(409, "Ce slug existe déjà.");
@@ -1110,7 +1391,7 @@ export function createPortal({
           /^\/api\/admin\/projects\/([a-f0-9-]+)$/,
         );
         if (projectMatch && req.method === "PUT") {
-          const p = validateProject(await body(req));
+          const p = validateProject(await body(req, 100000));
           if (
             !db
               .prepare("SELECT 1 FROM projects WHERE id=?")
@@ -1192,11 +1473,27 @@ export function createPortal({
         const inquiryMatch = path.match(
           /^\/api\/admin\/inquiries\/([a-f0-9-]+)$/,
         );
+        const inquiryRestore = path.match(/^\/api\/admin\/inquiries\/([a-f0-9-]+)\/restore$/);
+        if (inquiryRestore && req.method === "PUT") {
+          const result = db.prepare("UPDATE inquiries SET deleted_at=NULL WHERE id=? AND deleted_at IS NOT NULL").run(inquiryRestore[1]);
+          if (!result.changes) fail(404, "Demande introuvable.");
+          audit("inquiry.restore:" + inquiryRestore[1], s.email);
+          return json(res, 200, {ok:true});
+        }
+        if (inquiryMatch && req.method === "DELETE") {
+          const id = inquiryMatch[1];
+          const result = db.prepare("UPDATE inquiries SET deleted_at=? WHERE id=? AND deleted_at IS NULL").run(new Date().toISOString(), id);
+          if (!result.changes) fail(404, "Demande introuvable.");
+          db.prepare("DELETE FROM receipt_links WHERE kind='brief' AND entity_id=?").run(id);
+          db.prepare("UPDATE delivery_jobs SET status='cancelled' WHERE status IN ('pending','failed') AND (id=? OR id IN (?,?,?,?))").run('inquiry/'+id, ...['project','career','freelance','sponsorship'].map(k=>k+'-receipt/'+id));
+          audit("inquiry.trash:" + id, s.email);
+          return json(res, 200, {ok:true});
+        }
         if (inquiryMatch && req.method === "PATCH") {
           const data = await body(req);
           if (!["new", "reviewing", "replied", "closed"].includes(data.status))
             fail(400, "Statut invalide.");
-          db.prepare("UPDATE inquiries SET status=? WHERE id=?").run(
+          db.prepare("UPDATE inquiries SET status=? WHERE id=? AND deleted_at IS NULL").run(
             data.status,
             inquiryMatch[1],
           );
@@ -1289,7 +1586,7 @@ export function createPortal({
           limit("campaign:" + s.email, 3, 3600000);
           const recipients = db
             .prepare(
-              "SELECT * FROM subscribers WHERE status='subscribed' AND verified_at IS NOT NULL",
+              "SELECT * FROM subscribers WHERE status='subscribed' AND verified_at IS NOT NULL AND deleted_at IS NULL",
             )
             .all();
           if (!recipients.length) fail(400, "Aucun abonné confirmé.");
@@ -1346,5 +1643,15 @@ export function createPortal({
       });
     }
   }
-  return { handler, close: () => db.close(), db, purgeTrash };
+  return {
+    handler,
+    close: () => {
+      engagement.close();
+      db.close();
+    },
+    flushMail: () => engagement.drain(),
+    db,
+    purgeTrash,
+    ready: dummyPassword.then(() => undefined),
+  };
 }

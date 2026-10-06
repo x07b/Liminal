@@ -1,12 +1,15 @@
 import { useRef, useState } from "react";
 import { ArrowUpRight, Check } from "lucide-react";
 import { useLocale } from "./locale";
+
+
 import { request } from "./api";
 export default function InquiryForm({ kind = "project" }) {
   const { t, locale } = useLocale(),
     [status, setStatus] = useState(""),
     [error, setError] = useState("");
   const id = useRef(null);
+  const [download, setDownload] = useState(null);
   async function submit(e) {
     e.preventDefault();
     setError("");
@@ -14,10 +17,11 @@ export default function InquiryForm({ kind = "project" }) {
     id.current ||= crypto.randomUUID();
     const data = Object.fromEntries(new FormData(e.currentTarget));
     try {
-      await request("/api/inquiries", {
+      const result = await request("/api/inquiries", {
         method: "POST",
         data: { ...data, kind, locale, requestId: id.current },
       });
+      setDownload(result.download);
       setStatus("sent");
     } catch (err) {
       setError(t(err.message));
@@ -34,6 +38,23 @@ export default function InquiryForm({ kind = "project" }) {
             "Votre demande est arrivée chez LIMINAL. Nous vous répondrons par email.",
             "Your request is with LIMINAL. We’ll get back to you by email.",
             "وصل طلبك إلى ليمينال. سنرد عليك عبر البريد الإلكتروني.",
+          )}
+        </p>
+        {download && (
+          <a className="receipt-download" href={download} download>
+            {t(
+              "Télécharger mon brief PDF",
+              "Download my brief PDF",
+              "تحميل ملخص المشروع PDF",
+            )}{" "}
+            <ArrowUpRight size={16} />
+          </a>
+        )}
+        <p className="form-note">
+          {t(
+            "Une confirmation vous est envoyée par email. Si elle tarde, vérifiez les indésirables.",
+            "A confirmation is being sent by email. If it takes a while, check your spam folder.",
+            "ستصلك رسالة تأكيد بالبريد الإلكتروني. تحقق من الرسائل غير المرغوب فيها إذا تأخرت.",
           )}
         </p>
       </div>
@@ -72,16 +93,56 @@ export default function InquiryForm({ kind = "project" }) {
           <label>
             {t("Vous avez besoin de…", "What do you need?", "ما الذي تحتاجه؟")}
             <select name="type">
+              <option value="">
+                {t(
+                  "À définir ensemble",
+                  "Let’s define it together",
+                  "نحدده معاً",
+                )}
+              </option>
               {[
-                "Reels & production",
-                "Stratégie & concepts",
-                "Montage & motion design",
-                "Création augmentée par l’IA",
-                "Un accompagnement complet",
+                ["launch", "Un lancement", "A launch", "إطلاق"],
+                ["identity", "Une identité / un univers", "An identity / a world", "هوية / عالم"],
+                ["film", "Un film", "A film", "فيلم"],
+                ["digital", "Une expérience numérique", "A digital experience", "تجربة رقمية"],
+                ["object", "Un objet / un produit", "An object / a product", "شيء / منتج"],
+                ["experiment", "Une expérience", "An experiment", "تجربة"],
+                ["other", "Autre chose", "Something else", "شيء آخر"],
+              ].map(([value, fr, en, ar]) => <option key={value} value={value}>{t(fr, en, ar)}</option>)}
+            </select>
+          </label>
+          <label>
+            {t(
+              "Quels formats imaginez-vous ?",
+              "What formats do you have in mind?",
+              "ما الصيغ التي تفكرون فيها؟",
+            )}
+            <input
+              name="scope"
+              maxLength={1000}
+              placeholder={t(
+                "Film, reels, photos… ou à définir ensemble",
+                "Film, reels, stills… or let’s work it out",
+                "فيلم، ريلز، صور… أو نحددها معاً",
+              )}
+            />
+          </label>
+          <label>
+            {t(
+              "Une enveloppe prévue ? (TND)",
+              "A budget in mind? (TND)",
+              "ميزانية تقريبية؟ (دينار تونسي)",
+            )}
+            <select name="budget">
+              {[
+                t("À définir ensemble", "To discuss", "نحددها معاً"),
+                "< 2 000 TND",
+                "2 000–5 000 TND",
+                "5 000–10 000 TND",
+                "10 000–25 000 TND",
+                "25 000+ TND",
               ].map((x) => (
-                <option key={x} value={x}>
-                  {t(x)}
-                </option>
+                <option key={x}>{x}</option>
               ))}
             </select>
           </label>
@@ -133,9 +194,9 @@ export default function InquiryForm({ kind = "project" }) {
       <label>
         {kind === "project"
           ? t(
-              "Votre projet en quelques mots",
-              "Tell us about your project",
-              "حدثنا عن مشروعك",
+              "Que cherchez-vous à faire changer ?",
+              "What are you trying to make happen?",
+              "ما الذي تسعون إلى تحقيقه؟",
             )
           : t(
               "Présentez-vous et votre proposition",
@@ -151,6 +212,16 @@ export default function InquiryForm({ kind = "project" }) {
           rows={5}
         />
       </label>
+      {kind === "project" && (
+        <label>
+          {t(
+            "Autre chose à savoir ?",
+            "Anything else we should know?",
+            "هل هناك شيء آخر نحتاج معرفته؟",
+          )}
+          <textarea name="notes" maxLength={1000} rows={2} />
+        </label>
+      )}
       <div className="honeypot" aria-hidden="true">
         <label>
           Website

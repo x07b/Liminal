@@ -1,5 +1,7 @@
 # LIMINAL — Creative Production House
 
+Publication GitHub + Vercel : suivre [DEPLOYMENT.md](DEPLOYMENT.md). Le frontend est configuré pour Vercel ; l’API et les données utilisent un serveur avec disque persistant. Ne jamais publier `.env` ou `data/`.
+
 Projet de référence : `C:\Users\Zuss\Repo\Liminal`. React, JavaScript, Vite et Motion. Polices et visuels locaux.
 
 ## Lancer le site
@@ -25,7 +27,9 @@ npm start
 
 - Home : récit éditorial en plusieurs chapitres, aperçu des projets, services, méthode et accès à l’histoire.
 - Les sections et leurs contenus se révèlent au scroll. Le mouvement respecte `prefers-reduced-motion`.
-- Les témoignages publiés depuis l’administration apparaissent automatiquement sur la Home. En l’absence de témoignage réel, la section reste masquée.
+- Les témoignages et partenaires publiés depuis l’administration apparaissent automatiquement sur la Home. Deux témoignages fictifs illustrés et six marques fictives sont fournis comme exemples modifiables et supprimables. Leurs badges « Exemple » restent visibles jusqu’à leur remplacement.
+- Admin → Partenaires : nom, logo importé ou URL HTTPS, ordre, publication et suppression. Les exemples sont ajoutés une seule fois ; les suppressions persistent après redémarrage.
+- La Home propose une galerie visuelle, un bandeau de logos avec pause et une méthode interactive utilisable au clavier.
 - Projects : galerie alternée, filtres et détails alimentés par la base de données.
 - Our Story : histoire, convictions, fondateur et mur participatif modéré.
 - Join Us : trois parcours distincts — recrutement, freelance et sponsoring.
@@ -125,3 +129,20 @@ Création avec le **outil intégré ImageGen**, puis optimisation WebP avec Shar
 > Use case: ads-marketing. Asset type: ultra-wide cinematic website hero image for LIMINAL, a premium Tunisian creative production house. Create an original art-direction study, no text or logos. Wide editorial 21:9 composition: a mysterious anonymous human figure almost entirely obscured by an enormous flowing sheet of burnt vermilion silk, sculptural windblown fabric spanning the central and right portions of the image, one graceful hand subtly visible reaching from the fabric. Understated warm sandstone architectural space, dark brown shadow on left, late afternoon directional light from upper right, tactile film grain, deep rich blacks and glowing terracotta highlights. Fashion-film still meets contemporary art. Beautiful physical fabric folds, realistic photographic texture, cinematic intentional composition, sophisticated and warm not sci-fi. Large horizontal composition, no collage, no frames, no letters, no watermark. The figure is fully clothed and obscured. Make it look like an expensive art-house production still with generous quiet space and an enigmatic human gesture.
 
 Les polices DM Sans et Manrope sont distribuées via Fontsource ; leurs licences sont incluses dans leurs packages. L’archive du projet contient également une copie des licences.
+
+### Founders and team
+Manage profiles under Admin > Fondateurs & équipe. Choose the section, photo, display order, unique page slug and publication state. English/Arabic fields fall back to French when empty. Published profiles appear on Our Story and at /{slug}. Starter profiles seed once, so edits and deletions persist across restarts. Ghassen awaits a real photo; Mohamed is an editable fictional example.
+
+
+## Business clarity update — 2026-10-02
+The existing visual identity and hero are retained. `/services` explains four production offers; the homepage introduces them and links to the complete page. New copy is available in French, English and Arabic.
+
+In Admin > Projets, edit client/year, challenge, idea, direction, production, deliverables, outcome and credits. Choose publication status, homepage selection (up to four, by display order) and demo status. Add image/video gallery entries, choose final work or BTS, choose full/half width, write accessible descriptions/captions and move entries up/down. Add optional metrics. Empty case-study sections are hidden. Project deletion still uses the existing trash and restore workflow; shared gallery assets remain protected from purge.
+
+Partners can link to work or a client website and be included/excluded from the homepage. Testimonials can link to published work and have a display order. Relations to hidden/deleted projects are not rendered as dead public links.
+
+Contact enquiries now include goal, scope, timing, an optional budget range in TND and additional notes; values appear in the dashboard and admin email notification. Budget ranges are enquiry prompts, not prices.
+
+The FORMA campaign case study, rollout graphics and storyboard are fictional demonstration content, explicitly labelled. Replace the demo project, scope indicators and existing fictional partners/testimonials with real approved content before using them as client proof. The storyboard is a graphic planning example, not footage from an actual shoot. Seed migrations do not resurrect deleted examples.
+
+Restore point before this work: C:/Users/Zuss/Documents/Codex/Liminal-Restore-Points/before-business-prompt-20261002-151001. Restore as an entire directory, not an overlay, when explicitly requested.
