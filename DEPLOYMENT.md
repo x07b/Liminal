@@ -2,6 +2,16 @@
 
 The frontend runs on Vercel. The existing Node API requires one long-running server with a persistent disk: it uses SQLite, uploaded files and background email retries. Do not deploy the API as a Vercel Function or put its data on an ephemeral disk.
 
+## Configuration audit
+
+The reported `rewrites[0] missing destination` means the deployed configuration contains a rewrite without the required `destination` field. The current local `vercel.json` has no `rewrites` array, so that error cannot come from this file. Verify the next deployment uses the updated GitHub commit and root directory. There is no Git remote configured in this local checkout; changes here have not been pushed automatically.
+
+The single Vite build remains `npm run build` and produces `dist`. `build:vercel` runs that script, then packages the files and routes in `.vercel/output`. This is deployment packaging, not a second frontend build system. Root `vercel.json` and Build Output API routes have different schemas: the latter uses `src`/`dest`, not `source`/`destination`. Do not paste generated routes into a root `rewrites` array.
+
+The client uses same-origin `/api/*` requests for auth, administration, submissions, subscriptions, marks, exports and receipts. `/uploads/*` serves uploaded images/video. Both are proxied to BACKEND_ORIGIN before static assets and the SPA fallback. No backend origin or private environment variable is injected into browser JavaScript. Localhost occurrences in server URL parsers and local development commands do not create production API requests.
+
+Run `npm run build:vercel` with BACKEND_ORIGIN configured, then `npm run validate:vercel` and `npm test`. The validator checks the root config and generated routes against Vercel's official schema and rejects conflicting configuration files. It requires internet access. CI uses an example origin only to test packaging, never as a production backend.
+
 ## 1. GitHub
 
 Use Node 22 (at least 22.13). Run `npm ci`, `npm test`, and `npm run build`. Push this repository to a new GitHub repository. GitHub Actions repeats tests and the build on Linux.
@@ -33,9 +43,9 @@ This preserves the current projects, admin account, audience and inquiries. Star
 
 ## 3. Vercel
 
-Import the GitHub repository, choose Node **22.x**, and set `BACKEND_ORIGIN` to the backend HTTPS origin (e.g. `https://your-api.example.com`). No path or credentials. Framework preset: Other. Build command: `npm run build:vercel`. Disable the Output Directory override. `vercel.json` selects that build only (no rewrites in the JSON file). The build writes `.vercel/output` via the Build Output API, proxying `/api/*` and `/uploads/*` to `BACKEND_ORIGIN` before static assets and the SPA fallback. Do not add a root `vercel.mjs` / `vercel.ts` alongside `vercel.json`.
+Import the GitHub repository, choose Node **22.x**, and set `BACKEND_ORIGIN` to the backend HTTPS origin (e.g. `https://your-api.example.com`). No path or credentials. The repository sets framework `vite`, install command `npm ci`, build command `npm run build:vercel`, and Vite output directory `dist`. These fields are controlled by the repository; do not edit locked dashboard fields. `vercel.json` selects the build; it generates `.vercel/output` using the Build Output API, with API/uploads proxies before static assets and the SPA fallback. Delete the old `vercel.mjs` from GitHub; do not leave both configuration files.
 
-Deploy, then set the backend SITE_ORIGIN to the exact production website origin. Use the same canonical domain for admin and forms. No Resend key belongs on Vercel. Missing BACKEND_ORIGIN fails configuration explicitly instead of publishing broken forms.
+Deploy, then set the backend SITE_ORIGIN to the exact production website origin. Use the same canonical domain for admin and forms. No Resend key belongs on Vercel. Missing BACKEND_ORIGIN fails the build explicitly instead of publishing broken forms.
 
 Preview deployments can show the design, but authenticated/form requests from a different preview origin are intentionally rejected by the backend's origin protection. Use a separate staging backend and SITE_ORIGIN for full interactive preview testing.
 
@@ -50,4 +60,4 @@ Preview deployments can show the design, but authenticated/form requests from a 
 
 Preparation is not a live deployment: a backend host, persistent disk, verified email sender and Vercel environment settings are still required.
 
-References: [Vercel external rewrites](https://vercel.com/docs/routing/rewrites), [SQLite limitations](https://vercel.com/kb/guide/is-sqlite-supported-in-vercel), [programmatic configuration](https://vercel.com/docs/project-configuration/vercel-ts).
+References: [Vercel external rewrites](https://vercel.com/docs/routing/rewrites), [SQLite limitations](https://vercel.com/kb/guide/is-sqlite-supported-in-vercel), [Build Output API](https://vercel.com/docs/build-output-api/configuration).

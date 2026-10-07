@@ -16,4 +16,5 @@ jobs:
         env:
           BACKEND_ORIGIN: https://backend.example.com
       - run: npm test
+      - run: npm run validate:vercel
       - run: docker build -t liminal-check .

@@ -9,7 +9,8 @@
     "preview": "node --env-file-if-exists=.env node_modules/vite/bin/vite.js preview --host 127.0.0.1 --configLoader native",
     "start": "node --env-file-if-exists=.env server/index.js",
     "test": "node --test server/*.test.js",
-    "build:vercel": "node scripts/build-vercel.mjs"
+    "build:vercel": "node scripts/build-vercel.mjs",
+    "validate:vercel": "node scripts/validate-vercel.mjs"
   },
   "dependencies": {
     "@fontsource-variable/dm-sans": "^5.3.0",
@@ -29,6 +30,8 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^6.1.1",
+    "ajv": "^8.20.0",
+    "ajv-draft-04": "^1.0.0",
     "prettier": "^3.9.9",
     "vite": "^8.3.1"
   },

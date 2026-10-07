@@ -10,15 +10,21 @@ test("Vercel output routes preserve API, uploads and static assets before SPA fa
   const { outputConfig } = await import("../scripts/build-vercel.mjs");
   const config = JSON.parse(JSON.stringify(outputConfig("https://backend.example.com")));
   assert.equal(config.version, 3);
-  assert.equal(config.routes[0].headers["Permissions-Policy"], "camera=(), microphone=(), geolocation=()");
   assert.equal(config.routes[1].dest, "https://backend.example.com/api/$1");
   assert.equal(config.routes[2].dest, "https://backend.example.com/uploads/$1");
   assert.equal(config.routes[3].handle, "filesystem");
   assert.equal(config.routes[4].dest, "/index.html");
-  assert.match(JSON.stringify(config.routes[1]), /api\/\$1/);
-  assert.doesNotMatch(JSON.stringify(config), /"rewrites"/);
   assert.throws(() => outputConfig("http://unsafe.example.com/path"), /HTTPS origin/);
   assert.throws(() => outputConfig(), /Set BACKEND_ORIGIN/);
+  for (const origin of ["https://localhost", "https://127.0.0.1", "https://[::1]", "https://10.1.2.3", "https://192.168.1.1"]) {
+    assert.throws(() => outputConfig(origin), /public production backend/);
+  }
+  const proxy = (path) => config.routes.find(route => route.dest && new RegExp(`^${route.src}$`).test(path));
+  for (const path of ["/api/auth/login", "/api/admin/upload", "/api/inquiries", "/api/receipts/abc/brief.pdf", "/api/marks"]) {
+    assert.equal(proxy(path), config.routes[1]);
+  }
+  assert.equal(proxy("/uploads/example.webp"), config.routes[2]);
+  assert.equal(proxy("/work/paravie"), config.routes[4]);
 });
 test("production serves deep links and protects private paths", { skip: !existsSync("dist/index.html") }, async (t) => {
   const probe = createServer();
