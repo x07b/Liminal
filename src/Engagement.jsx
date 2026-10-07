@@ -31,7 +31,7 @@ export function CommunityProvider({ children }) {
       alive = false;
     };
   }, [location.pathname]);
-  return <Community.Provider value={data}>{children}</Community.Provider>;
+  return <Community.Provider value={data}>{import.meta.env.VITE_LIMINAL_PREVIEW === "true" && <aside role="status" style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 9999, padding: "8px 16px", background: "#fff2b8", color: "#171717", fontSize: 12 }}>PREVIEW — Data stays in this browser only. Forms are demos; no emails are sent. <a href="/admin" style={{ color: "#171717", textDecoration: "underline" }}>Local dashboard</a></aside>}{children}</Community.Provider>;
 }
 export function SocialLinks({ only } = {}) {
   const { settings: s } = useContext(Community);

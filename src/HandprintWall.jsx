@@ -1,3 +1,4 @@
+import { apiFetch } from "./api";
 import { ScrollCopy } from "./ScrollStory";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
@@ -46,7 +47,7 @@ export default function HandprintWall() {
     const timeout = setTimeout(() => controller.abort(), 12000);
     if (!silent) setLoading(true);
     try {
-      const response = await fetch(`/api/marks?page=${targetPage}`, {
+      const response = await apiFetch(`/api/marks?page=${targetPage}`, {
         signal: controller.signal,
       });
       if (!response.ok) throw new Error();
@@ -154,7 +155,7 @@ export default function HandprintWall() {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 12000);
     try {
-      const response = await fetch("/api/marks", {
+      const response = await apiFetch("/api/marks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         signal: controller.signal,

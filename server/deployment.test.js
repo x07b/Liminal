@@ -15,7 +15,7 @@ test("Vercel output routes preserve API, uploads and static assets before SPA fa
   assert.equal(config.routes[3].handle, "filesystem");
   assert.equal(config.routes[4].dest, "/index.html");
   assert.throws(() => outputConfig("http://unsafe.example.com/path"), /HTTPS origin/);
-  assert.throws(() => outputConfig(), /Set BACKEND_ORIGIN/);
+  assert.equal(outputConfig().version, 3); assert.ok(outputConfig().routes.every(route => !route.dest?.startsWith("https:")));
   for (const origin of ["https://localhost", "https://127.0.0.1", "https://[::1]", "https://10.1.2.3", "https://192.168.1.1"]) {
     assert.throws(() => outputConfig(origin), /public production backend/);
   }

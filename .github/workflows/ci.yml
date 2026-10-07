@@ -5,6 +5,9 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        backend: ["", "https://api.example.com"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -14,7 +17,7 @@ jobs:
       - run: npm ci
       - run: npm run build:vercel
         env:
-          BACKEND_ORIGIN: https://backend.example.com
+          BACKEND_ORIGIN: ${{ matrix.backend }}
       - run: npm test
       - run: npm run validate:vercel
       - run: docker build -t liminal-check .

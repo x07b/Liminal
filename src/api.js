@@ -2,6 +2,10 @@ export async function request(
   path,
   { method = "GET", data, csrf, body, headers = {} } = {},
 ) {
+  if (import.meta.env.VITE_LIMINAL_PREVIEW === "true") {
+    const { previewRequest } = await import("./preview-store");
+    return previewRequest(path, { method, data });
+  }
   const response = await fetch(path, {
     method,
     credentials: "same-origin",
@@ -30,4 +34,13 @@ export async function request(
       status: response.status,
     });
   return result;
+}
+
+export async function apiFetch(path, options = {}) {
+  if (import.meta.env.VITE_LIMINAL_PREVIEW !== "true") return fetch(path, options);
+  try {
+    const { previewRequest } = await import("./preview-store");
+    const result = await previewRequest(path, { method: options.method || "GET", data: options.body ? JSON.parse(options.body) : undefined });
+    return Response.json(result);
+  } catch (error) { return Response.json({ error: error.message }, { status: 400 }); }
 }

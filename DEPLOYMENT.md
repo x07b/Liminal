@@ -1,5 +1,13 @@
 # GitHub + Vercel deployment
 
+## Zero-variable preview
+
+No backend host is required for preview. Leave BACKEND_ORIGIN unset and run `npm run build:vercel`. The build generates SPA/static routing without any external proxy. The frontend starts with empty project/people/testimonial data, and stores demo inquiries, subscriptions, feedback, handprints and small image uploads in this browser's localStorage only. `/admin` shows a separate local demo dashboard. No email, campaign, production authentication or PDF service is simulated as real delivery. Clearing browser storage removes the demo data. The preview banner explains this to visitors.
+
+This is not owner-only access control. Enable Vercel Deployment Protection for a restricted preview; localStorage cannot authenticate an owner. Do not enter sensitive production data into the demo.
+
+Later, add a real HTTPS BACKEND_ORIGIN and rebuild/redeploy. The production client and proxies are restored and preview data is ignored, not migrated to the backend. No browser-side runtime environment lookup is needed: the build sets an internal Vite preview flag automatically.
+
 The frontend runs on Vercel. The existing Node API requires one long-running server with a persistent disk: it uses SQLite, uploaded files and background email retries. Do not deploy the API as a Vercel Function or put its data on an ephemeral disk.
 
 ## Configuration audit
@@ -45,7 +53,7 @@ This preserves the current projects, admin account, audience and inquiries. Star
 
 Import the GitHub repository, choose Node **22.x**, and set `BACKEND_ORIGIN` to the backend HTTPS origin (e.g. `https://your-api.example.com`). No path or credentials. The repository sets framework `vite`, install command `npm ci`, build command `npm run build:vercel`, and Vite output directory `dist`. These fields are controlled by the repository; do not edit locked dashboard fields. `vercel.json` selects the build; it generates `.vercel/output` using the Build Output API, with API/uploads proxies before static assets and the SPA fallback. Delete the old `vercel.mjs` from GitHub; do not leave both configuration files.
 
-Deploy, then set the backend SITE_ORIGIN to the exact production website origin. Use the same canonical domain for admin and forms. No Resend key belongs on Vercel. Missing BACKEND_ORIGIN fails the build explicitly instead of publishing broken forms.
+Deploy, then set the backend SITE_ORIGIN to the exact production website origin. Use the same canonical domain for admin and forms. No Resend key belongs on Vercel. Absent BACKEND_ORIGIN selects the isolated preview described above.
 
 Preview deployments can show the design, but authenticated/form requests from a different preview origin are intentionally rejected by the backend's origin protection. Use a separate staging backend and SITE_ORIGIN for full interactive preview testing.
 

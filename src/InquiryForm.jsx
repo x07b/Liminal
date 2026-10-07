@@ -34,7 +34,7 @@ export default function InquiryForm({ kind = "project" }) {
         <Check size={32} />
         <h2>{t("Bien reçu.", "Received.", "وصلتنا رسالتك.")}</h2>
         <p>
-          {t(
+          {import.meta.env.VITE_LIMINAL_PREVIEW === "true" ? "Demo saved in this browser only. Nothing was sent to LIMINAL and no email will be delivered." : t(
             "Votre demande est arrivée chez LIMINAL. Nous vous répondrons par email.",
             "Your request is with LIMINAL. We’ll get back to you by email.",
             "وصل طلبك إلى ليمينال. سنرد عليك عبر البريد الإلكتروني.",

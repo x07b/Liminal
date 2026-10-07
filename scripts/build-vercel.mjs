@@ -4,7 +4,14 @@ import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
 
 export function outputConfig(origin) {
-  if (!origin) throw new Error("Set BACKEND_ORIGIN in Vercel to your persistent backend HTTPS origin.");
+  if (!origin?.trim()) return {
+    version: 3,
+    routes: [
+      { src: "/(?:api|uploads)(?:/.*)?", status: 404 },
+      { handle: "filesystem" },
+      { src: "/.*", dest: "/index.html" },
+    ],
+  };
   const backend = new URL(origin);
   if (backend.protocol !== "https:" || backend.username || backend.password || backend.pathname !== "/" || backend.search || backend.hash) {
     throw new Error("BACKEND_ORIGIN must be an HTTPS origin without a path, credentials or query string.");
@@ -29,7 +36,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
   const config = outputConfig(process.env.BACKEND_ORIGIN);
   // Reuse the project's single Vite build script; never bundle the persistent API.
   if (!process.env.npm_execpath) throw new Error("Run this script with npm run build:vercel.");
-  const build = spawnSync(process.execPath, [process.env.npm_execpath, "run", "build"], { stdio: "inherit" });
+  const build = spawnSync(process.execPath, [process.env.npm_execpath, "run", "build"], { stdio: "inherit", env: { ...process.env, VITE_LIMINAL_PREVIEW: process.env.BACKEND_ORIGIN?.trim() ? "false" : "true" } });
   if (build.error) throw build.error;
   if (build.status !== 0) process.exit(build.status || 1);
   const output = resolve(".vercel/output");

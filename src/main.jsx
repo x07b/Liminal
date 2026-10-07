@@ -57,7 +57,7 @@ import "./art-direction.css";
 import EditorialHome from "./EditorialHome";
 import "./EditorialPages.css";
 import ExistenceHome, { ExistenceHeader, ExistenceFooter, WorkPage, LabPage, DropsPage, AboutPage, HowThingsEscape, FinalCall } from "./Existence";
-const Admin = lazy(() => import("./Admin"));
+const Admin = lazy(() => import.meta.env.VITE_LIMINAL_PREVIEW === "true" ? import("./PreviewAdmin") : import("./Admin"));
 
 function Mark({ className = "" }) {
   return (
